@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Pesan Makanan — Lokalin</title>
+  <meta name="description" content="Pesan makanan dan minuman langsung dari mejamu." />
+  <link rel="stylesheet" href="/style.css?v=9" />
+
+</head>
+
+<body>
+
+  <!-- ── Hero ── -->
+  <div class="order-hero">
+    <div class="hero-copy">
+      <div class="restaurant-name">🍽️ Lokalin</div>
+      <p class="hero-subtitle">Pilih menu favorit, kirim pesanan langsung ke dapur, dan nikmati layanan cepat tanpa antri.</p>
+    </div>
+    <div class="table-badge">🪑 Meja <span id="table-display">—</span></div>
+  </div>
+
+  <!-- ── Tabs ── -->
+  <div class="tabs-wrapper">
+    <div class="tab-nav" id="tab-nav">
+      <button class="tab-btn active" id="tab-food" onclick="switchTab('food')">🍽️ Makanan</button>
+      <button class="tab-btn" id="tab-drinks" onclick="switchTab('drinks')">🍹 Minuman</button>
+    </div>
+  </div>
+
+  <!-- ── Menu Panels ── -->
+  <div id="panel-food">
+    <div class="section-title">Menu Makanan</div>
+    <div class="menu-grid" id="food-list">
+      <div class="empty-state">
+        <div class="spinner"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="panel-drinks" class="hidden">
+    <div class="section-title">Menu Minuman</div>
+    <div class="menu-grid" id="drinks-list">
+      <div class="empty-state">
+        <div class="spinner"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Hot/Cold Modal ── -->
+  <div id="hotcold-modal" class="modal-overlay">
+    <div id="hotcold-panel" class="modal-panel">
+      <div id="hotcold-item-icon" class="page-icon modal-icon">☕</div>
+      <h3 id="hotcold-item-name" class="modal-heading">Nama Minuman</h3>
+      <p class="modal-copy">Pilih penyajian:</p>
+      <div class="modal-btn-group">
+        <button id="btn-hot" class="modal-option hot" onclick="confirmHotCold('Hot')">🔥 Hot</button>
+        <button id="btn-cold" class="modal-option cold" onclick="confirmHotCold('Cold')">🧊 Cold</button>
+      </div>
+      <button class="modal-close" onclick="closeHotColdModal()">Batal</button>
+    </div>
+  </div>
+
+  <!-- ── Variant Modal ── -->
+  <div id="variant-modal" class="modal-overlay">
+    <div id="variant-panel" class="modal-panel">
+      <div id="variant-item-icon" class="page-icon modal-icon">🍌</div>
+      <h3 id="variant-item-name" class="modal-heading">Paket Nongkrong</h3>
+      <p class="modal-copy">Pilih varian Pisang Goreng:</p>
+      <div class="modal-btn-group" id="variant-buttons" style="display: flex; flex-direction: column; gap: 8px;">
+        <button class="modal-option" style="background: var(--bg-input); color: var(--text-primary); justify-content: center;" onclick="confirmVariant('Original')">Original</button>
+        <button class="modal-option" style="background: var(--bg-input); color: var(--text-primary); justify-content: center;" onclick="confirmVariant('Coklat Keju')">Coklat Keju</button>
+        <button class="modal-option" style="background: var(--bg-input); color: var(--text-primary); justify-content: center;" onclick="confirmVariant('Coklat')">Coklat</button>
+        <button class="modal-option" style="background: var(--bg-input); color: var(--text-primary); justify-content: center;" onclick="confirmVariant('Keju')">Keju</button>
+      </div>
+      <button class="modal-close" onclick="closeVariantModal()" style="margin-top:16px;">Batal</button>
+    </div>
+  </div>
+
+
+  <!-- ── Checkout Modal ── -->
+  <div id="checkout-modal" class="checkout-modal">
+    <div id="checkout-panel" class="checkout-panel">
+      <div class="checkout-header">
+        <h3 class="checkout-title">Konfirmasi Pesanan</h3>
+        <button class="modal-close" onclick="closeCheckoutModal()">✕</button>
+      </div>
+      
+      <div id="checkout-items-list" class="checkout-items-list" style="margin-bottom: 16px; display:flex; flex-direction:column; gap:8px;"></div>
+
+      <label for="modal-note" class="modal-label">📝 Catatan Tambahan (Opsional)</label>
+      <textarea id="modal-note" class="modal-textarea" placeholder="Misal: Kopi susu less sugar, burger jangan pakai acar..." rows="3"></textarea>
+      <button class="btn btn-primary checkout-submit" onclick="placeOrder()">Kirim Pesanan Sekarang</button>
+    </div>
+  </div>
+
+  <!-- ── Cart Bar ── -->
+  <div id="cart-bar">
+    <div class="cart-row">
+      <div class="cart-info">
+        <div class="cart-count" id="cart-count">0 item</div>
+        <div class="cart-tax" id="cart-tax">+ Pajak 11%: Rp 0</div>
+        <div class="cart-total" id="cart-total">Rp 0</div>
+      </div>
+      <button class="btn btn-primary" id="place-order-btn" onclick="openCheckoutModal()">
+        Pesan Sekarang
+      </button>
+    </div>
+  </div>
+
+  <!-- ── Confirmation Screen ── -->
+  <div id="confirm-screen">
+    <div class="confirm-icon">✅</div>
+    <div class="confirm-title">Pesanan Diterima!</div>
+    <div class="confirm-body">
+      Pesanan untuk <strong id="confirm-table" class="confirm-table">Meja —</strong> sudah masuk dapur dan bar
+      kami.
+    </div>
+    <div class="confirm-note">
+      💳 <strong>Cara Bayar:</strong><br />
+      Silakan turun ke kasir di lantai bawah. Kasir akan membuatkan tagihan, lalu bayar via <strong>QR Code /
+        EDC</strong> di mesin kasir.
+    </div>
+    <button class="btn btn-ghost" onclick="resetApp()">+ Tambah Pesanan Lagi</button>
+  </div>
+
+
+
+  <script src="/order.js?v=4"></script>
+</body>
+
+</html>

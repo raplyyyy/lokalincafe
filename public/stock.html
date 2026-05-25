@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Manajemen Stok Harian — Lokalin</title>
+  <meta name="description" content="Manajemen stok harian." />
+  <link rel="stylesheet" href="/style.css?v=9" />
+  <style>
+    .stock-table-container {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 16px;
+      overflow-x: auto;
+      margin-bottom: 24px;
+    }
+    .stock-table {
+      width: 100%;
+      min-width: 700px;
+      border-collapse: collapse;
+      text-align: left;
+    }
+    .stock-table th {
+      padding: 12px;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border-strong);
+      font-weight: 700;
+      letter-spacing: 0.05em;
+    }
+    .stock-table td {
+      padding: 12px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle;
+    }
+    .stock-table tr:last-child td {
+      border-bottom: none;
+    }
+    .stock-table input[type=number] {
+      width: 60px;
+      padding: 8px;
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      color: var(--text-primary);
+      font-family: inherit;
+      font-size: 0.9rem;
+      text-align: right;
+      transition: var(--transition);
+    }
+    .stock-table input[type=number]:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-glow);
+    }
+    .stock-table input::-webkit-outer-spin-button,
+    .stock-table input::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    .stock-table input[type=number] {
+      -moz-appearance: textfield;
+    }
+    .stock-akhir-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: var(--radius-md);
+      font-weight: 800;
+      font-size: 1rem;
+      min-width: 48px;
+      text-align: center;
+    }
+    .stock-normal {
+      background: rgba(49, 151, 149, 0.2);
+      color: #3ed598;
+      border: 1px solid rgba(49, 151, 149, 0.4);
+    }
+    .stock-warning {
+      background: rgba(245, 158, 11, 0.2);
+      color: #fbd38d;
+      border: 1px solid rgba(245, 158, 11, 0.4);
+    }
+    .stock-danger {
+      background: rgba(229, 62, 62, 0.2);
+      color: #fc8181;
+      border: 1px solid rgba(229, 62, 62, 0.4);
+    }
+    .alert-banner {
+      background: rgba(229, 62, 62, 0.15);
+      border: 1px solid rgba(229, 62, 62, 0.4);
+      color: #fc8181;
+      padding: 12px 16px;
+      border-radius: var(--radius-md);
+      margin-bottom: 16px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .icon-btn-del {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      width: 32px;
+      height: 32px;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      transition: var(--transition);
+      display: grid;
+      place-items: center;
+    }
+    .icon-btn-del:hover {
+      background: rgba(229, 62, 62, 0.2);
+      color: #fc8181;
+      border-color: rgba(229, 62, 62, 0.4);
+    }
+    .export-btn {
+      margin-bottom: 20px;
+    }
+    .history-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+    .history-date {
+      font-weight: 700;
+      font-size: 1.1rem;
+      color: var(--accent);
+      margin-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .history-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+    }
+    .history-table th, .history-table td {
+      padding: 8px;
+      border-bottom: 1px solid var(--border-strong);
+      text-align: left;
+    }
+    .history-table th { color: var(--text-muted); }
+  </style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="admin-header">
+  <div class="admin-header-left">
+    <button class="menu-toggle-btn" onclick="toggleSidebar()">☰</button>
+    <span class="page-icon">📦</span>
+    <div class="page-title">Manajemen Stok Harian</div>
+  </div>
+</div>
+
+<div class="admin-body">
+
+  <div class="tabs-wrapper" style="margin-bottom: 24px; max-width: none; padding: 0;">
+    <div class="tab-nav" style="margin: 0; display: inline-flex;">
+      <button class="tab-btn active" onclick="switchStockTab('kitchen')">🍳 Kitchen</button>
+      <button class="tab-btn" onclick="switchStockTab('bar')">🍹 Bar</button>
+    </div>
+  </div>
+
+  <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 24px;">
+    <button id="saveDraftBtn" class="btn btn-ghost" style="border:1px solid var(--accent); color:var(--accent);">💾 Simpan Sementara</button>
+    <button id="closeDayBtn" class="btn btn-primary">✅ Tutup Hari (Closing)</button>
+    <button id="viewHistoryBtn" class="btn btn-ghost">🗓️ Riwayat Rekap</button>
+    <button onclick="openExportModal()" class="btn btn-ghost" style="background:#1d6f42; color:#fff; border:none;">📊 Export Excel</button>
+  </div>
+  <!-- Add Form -->
+  <div class="add-form">
+    <h3 id="add-title">+ Tambah Menu ke Stok</h3>
+    <div class="form-row">
+      <div class="form-group" style="flex: 2;">
+        <label>Nama Menu</label>
+        <input type="text" id="inp-name" placeholder="cth: Nasi Goreng" />
+      </div>
+      <div class="form-group" style="flex: 1;">
+        <label>Stok Awal</label>
+        <input type="number" id="inp-initial" placeholder="0" min="0" value="0" />
+      </div>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-primary" onclick="addStockItem()">+ Tambah</button>
+      <button class="btn btn-ghost" onclick="clearForm()">Bersihkan</button>
+    </div>
+  </div>
+
+  <div id="alertContainer"></div>
+
+  <!-- Stock Table -->
+  <div class="stock-table-container">
+    <table class="stock-table">
+      <thead>
+        <tr>
+          <th>Nama Menu</th>
+          <th>Awal</th>
+          <th>IN</th>
+          <th>OUT</th>
+          <th>Spoil</th>
+          <th class="text-center">Akhir</th>
+          <th class="text-center">Aksi</th>
+        </tr>
+      </thead>
+      <tbody id="stockTableBody">
+        <!-- Rows injected by JS -->
+      </tbody>
+    </table>
+  </div>
+
+</div>
+
+<!-- History Modal -->
+<div id="historyModal" class="modal-overlay">
+  <div class="checkout-panel" style="max-height: 85vh; overflow-y: auto; text-align: left; max-width: 900px; opacity: 1 !important; transform: none !important;">
+    <div class="checkout-header">
+      <h2 class="checkout-title">🗓️ Riwayat Rekap Harian</h2>
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <button class="btn btn-ghost" onclick="clearHistory()" style="padding: 6px 12px; color: #fc8181; border-color: rgba(229,62,62,0.3); font-size: 0.8rem;">🗑️ Bersihkan</button>
+        <button class="modal-close" onclick="closeHistoryModal()">✕</button>
+      </div>
+    </div>
+    <div id="historyContainer" style="margin-top: 16px;">
+      <!-- Dates and tables injected here -->
+    </div>
+  </div>
+</div>
+
+<!-- Export Modal -->
+<div id="exportModal" class="modal-overlay">
+  <div class="checkout-panel" style="text-align: left; opacity: 1 !important; transform: none !important;">
+    <div class="checkout-header">
+      <h2 class="checkout-title">📊 Export Data ke Excel</h2>
+      <button class="modal-close" onclick="closeExportModal()">✕</button>
+    </div>
+    
+    <div style="margin-top: 16px; display: flex; flex-direction: column; gap: 16px;">
+      <div class="form-group">
+        <label>Format Laporan</label>
+        <select id="export-type" class="modal-textarea" style="height: 48px; padding: 12px; font-weight: 600;" onchange="toggleExportInputs()">
+          <option value="hari_ini">Rekap Hari Ini (Belum Ditutup)</option>
+          <option value="harian">Laporan Harian (Pilih Tanggal)</option>
+          <option value="bulanan">Laporan Bulanan (Pilih Bulan)</option>
+          <option value="semua">Semua Riwayat Tersimpan</option>
+        </select>
+      </div>
+      
+      <div class="form-group" id="export-date-group" style="display: none;">
+        <label>Pilih Tanggal</label>
+        <input type="date" id="export-date" class="modal-textarea" style="height: 48px; padding: 12px; font-weight: 600;" />
+      </div>
+      
+      <div class="form-group" id="export-month-group" style="display: none;">
+        <label>Pilih Bulan</label>
+        <input type="month" id="export-month" class="modal-textarea" style="height: 48px; padding: 12px; font-weight: 600;" />
+      </div>
+      
+      <button class="btn btn-primary" onclick="processExportExcel()" style="width: 100%; margin-top: 8px; background: #1d6f42;">Unduh Excel (.xlsx)</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- Sidebar (copied from admin.html for consistency) -->
+<div id="sidebar-overlay" onclick="toggleSidebar()"></div>
+<div id="sidebar-nav">
+  <div class="sidebar-header">
+    <div class="restaurant-name">🍽️ Lokalin</div>
+    <button class="close-btn" onclick="toggleSidebar()">✕</button>
+  </div>
+  <a href="/order?table=5" class="sidebar-link">📱 Pesan (Customer)</a>
+  <a href="/cashier" class="sidebar-link">👩‍🍳 Bar & Kasir</a>
+  <a href="/admin" class="sidebar-link">⚙️ Admin Menu</a>
+  <a href="/stock.html" class="sidebar-link" style="color:var(--accent);">📦 Manajemen Stok</a>
+</div>
+
+<script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+<script src="/stock.js?v=10"></script>
+<script>
+  function toggleSidebar() {
+    document.getElementById('sidebar-nav').classList.toggle('show');
+    document.getElementById('sidebar-overlay').classList.toggle('show');
+  }
+</script>
+</body>
+</html>

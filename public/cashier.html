@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bar & Kasir — Lokalin</title>
+  <meta name="description" content="Dashboard terpadu untuk bar dan kasir." />
+  <link rel="stylesheet" href="/style.css?v=9" />
+</head>
+<body>
+
+<!-- ── Header ── -->
+<div class="cashier-header">
+  <div class="cashier-header-left">
+    <button class="menu-toggle-btn" onclick="toggleSidebar()">☰</button>
+    <span class="page-icon">👩‍🍳</span>
+    <div>
+      <div class="page-title">Bar & Kasir</div>
+      <div class="ws-indicator">
+        <div class="ws-dot" id="ws-dot"></div>
+        <span id="ws-label">Menghubungkan…</span>
+      </div>
+    </div>
+  </div>
+  <button class="refresh-btn" id="refresh-btn" onclick="loadOrders()">
+    <svg id="refresh-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+      <path d="M23 4v6h-6M1 20v-6h6"/>
+      <path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/>
+    </svg>
+    Refresh
+  </button>
+</div>
+
+<div class="tabs-wrapper">
+  <button class="tab-btn active" id="tab-cashier" onclick="switchTab('cashier')">🧾 Kasir & Pembayaran</button>
+  <button class="tab-btn" id="tab-bar" onclick="switchTab('bar')">🍹 Bar</button>
+  <button class="tab-btn" id="tab-stock" onclick="switchTab('stock')">📦 Stock</button>
+</div>
+<div class="dashboard-summary">
+  <div class="summary-card">
+    <div class="summary-label">Pesanan Aktif</div>
+    <div class="summary-value" id="order-count">0</div>
+  </div>
+  <div class="summary-card">
+    <div class="summary-label">Stock Item</div>
+    <div class="summary-value" id="stock-count">0</div>
+  </div>
+</div>
+
+<!-- ── Cashier View ── -->
+<div id="view-cashier" class="view-section active">
+  <div class="section-hint">
+    <span id="order-count-label">0</span> pesanan aktif
+  </div>
+  <div id="order-list" class="order-list">
+    <div class="empty-state"><div class="spinner"></div></div>
+  </div>
+</div>
+
+  <!-- Stock View -->
+  <div id="view-stock" class="view-section">
+    <div class="section-hint">
+      <span id="stock-count-label">0</span> items
+    </div>
+    <div id="stock-list" class="stock-list"></div>
+  </div>
+
+<!-- ── Bar View ── -->
+<div id="view-bar" class="view-section">
+  <div class="section-hint">
+    <span id="active-count">0</span> minuman perlu dibuat
+  </div>
+  <div id="cards-bar">
+    <div class="empty-state"><div class="spinner"></div></div>
+  </div>
+</div>
+
+<!-- ── Detail Panel ── -->
+<div id="detail-overlay" onclick="closeDetail()"></div>
+<div id="detail-panel">
+  <div class="panel-handle"></div>
+  <div class="panel-table" id="panel-table">Meja —</div>
+  <div class="panel-time" id="panel-time"></div>
+
+  <div class="item-section" id="section-food">
+    <div class="item-section-title">🍽️ Makanan</div>
+    <div id="panel-food-items"></div>
+  </div>
+
+  <div class="item-section" id="section-drinks">
+    <div class="item-section-title">🍹 Minuman</div>
+    <div id="panel-drink-items"></div>
+    <div class="drink-status-row">
+        <span class="status-note">Status bar:</span>
+        <span id="panel-drink-status" class="badge badge-pending">⏳ Pending</span>
+    </div>
+  </div>
+  <div id="panel-note" class="panel-note">
+    <div class="panel-note-title">📝 Catatan Pesanan</div>
+    <div id="panel-note-text" class="panel-note-text"></div>
+  </div>
+
+  <div class="panel-total">
+    <div class="panel-total-row">
+      <span class="label">Subtotal</span>
+      <span id="panel-subtotal" class="panel-amount">Rp 0</span>
+    </div>
+    <div class="panel-total-row">
+      <span class="label">Pajak (11%)</span>
+      <span id="panel-tax" class="panel-amount panel-tax">Rp 0</span>
+    </div>
+    <div class="panel-total-row panel-total-final">
+      <span class="label">Total Bayar</span>
+      <span class="total-amount" id="panel-total">Rp 0</span>
+    </div>
+  </div>
+
+  <button class="btn btn-success" id="pay-btn" onclick="markPaid()">
+    ✅ Lunas — Tandai Sudah Bayar
+  </button>
+</div>
+
+<div id="sidebar-overlay" onclick="toggleSidebar()"></div>
+<div id="sidebar-nav">
+  <div class="sidebar-header">
+    <div class="restaurant-name">🍽️ Lokalin</div>
+    <button class="close-btn" onclick="toggleSidebar()">✕</button>
+  </div>
+  <a href="/order?table=5" class="sidebar-link">📱 Pesan (Customer)</a>
+  <a href="/cashier" class="sidebar-link">👩‍🍳 Bar & Kasir</a>
+  <a href="/admin" class="sidebar-link">⚙️ Admin Menu</a>
+</div>
+
+<script src="/cashier.js"></script>
+</body>
+</html>

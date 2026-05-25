@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Menu — Lokalin</title>
+  <meta name="description" content="Kelola menu makanan dan minuman." />
+  <link rel="stylesheet" href="/style.css?v=9" />
+</head>
+<body>
+
+<!-- Header -->
+<div class="admin-header">
+  <div class="admin-header-left">
+    <button class="menu-toggle-btn" onclick="toggleSidebar()">☰</button>
+    <span class="page-icon">⚙️</span>
+    <div class="page-title">Admin Menu</div>
+  </div>
+</div>
+
+<div class="admin-body">
+
+  <!-- Tabs -->
+  <div class="tabs-wrapper">
+    <div class="tab-nav">
+      <button class="tab-btn active" onclick="switchTab('food')">🍽️ Makanan</button>
+      <button class="tab-btn" onclick="switchTab('drinks')">🍹 Minuman</button>
+      <button class="tab-btn" onclick="switchTab('report')">📈 Laporan</button>
+    </div>
+  </div>
+
+  <!-- Add Form -->
+  <div class="add-form">
+    <h3 id="add-title">+ Tambah Makanan</h3>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Nama Item</label>
+        <input type="text" id="inp-name" placeholder="cth: Nasi Goreng" />
+      </div>
+      <div class="form-group">
+        <label>Harga (Rp)</label>
+        <input type="number" id="inp-price" placeholder="25000" min="0" />
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Deskripsi</label>
+        <input type="text" id="inp-desc" placeholder="Deskripsi singkat…" />
+      </div>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-primary" onclick="addItem()">+ Tambah</button>
+      <button class="btn btn-ghost" onclick="clearForm()">Bersihkan</button>
+    </div>
+  </div>
+
+  <!-- Menu List -->
+  <div id="menu-list-container">
+    <div class="empty-state"><div class="spinner"></div></div>
+  </div>
+
+  <!-- Report Dashboard -->
+  <div id="report-container" style="display:none;">
+    <div class="dashboard-summary" style="margin-bottom:24px; display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:16px;">
+      <div style="background:var(--bg-card); padding:20px; border-radius:var(--radius-lg); border:1px solid var(--border);">
+        <div style="color:var(--text-muted); font-size:0.85rem; font-weight:700; text-transform:uppercase; margin-bottom:8px;">Pendapatan Hari Ini</div>
+        <div id="report-revenue" style="font-size:1.8rem; font-weight:900; color:var(--green);">Rp 0</div>
+      </div>
+      <div style="background:var(--bg-card); padding:20px; border-radius:var(--radius-lg); border:1px solid var(--border);">
+        <div style="color:var(--text-muted); font-size:0.85rem; font-weight:700; text-transform:uppercase; margin-bottom:8px;">Total Pesanan Selesai</div>
+        <div id="report-orders" style="font-size:1.8rem; font-weight:900; color:var(--text-primary);">0</div>
+      </div>
+    </div>
+    
+    <div style="background:var(--bg-card); padding:20px; border-radius:var(--radius-lg); border:1px solid var(--border);">
+      <h4 style="margin-bottom:16px; color:var(--accent);">🏆 Menu Paling Laris Hari Ini</h4>
+      <div id="report-popular-items" style="display:flex; flex-direction:column; gap:12px;"></div>
+    </div>
+  </div>
+
+</div>
+
+<div id="sidebar-overlay" onclick="toggleSidebar()"></div>
+<div id="sidebar-nav">
+  <div class="sidebar-header">
+    <div class="restaurant-name">🍽️ Lokalin</div>
+    <button class="close-btn" onclick="toggleSidebar()">✕</button>
+  </div>
+  <a href="/order?table=5" class="sidebar-link">📱 Pesan (Customer)</a>
+  <a href="/cashier" class="sidebar-link">👩‍🍳 Bar & Kasir</a>
+  <a href="/admin" class="sidebar-link">⚙️ Admin Menu</a>
+</div>
+
+<script>
+let currentTab = "food";
+let menu = { food: [], drinks: [] };
+
+const ICONS = {
+  food:   ["🍛","🍜","🍗","🌶️","🥘","🥗","🥡","🍚","🥩","🧆","🫕","🥚"],
+  drinks: ["🧋","🍊","🥑","🥭","💧","☕","🥛","🍵","🧃","🫖","🍹","🥤"]
+};
+
+window.addEventListener("DOMContentLoaded", loadMenu);
+
+async function loadMenu() {
+  try {
+    const res = await fetch("/api/menu");
+    menu = await res.json();
+    renderList();
+  } catch {
+    document.getElementById("menu-list-container").innerHTML = "<p style='color:var(--red)'>Gagal memuat menu</p>";
+  }
+}
+
+function switchTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll(".tab-btn").forEach((btn, i) => {
+    btn.classList.toggle("active", 
+      (i === 0 && tab === "food") || 
+      (i === 1 && tab === "drinks") || 
+      (i === 2 && tab === "report")
+    );
+  });
+  
+  const addForm = document.querySelector(".add-form");
+  const menuList = document.getElementById("menu-list-container");
+  const reportContainer = document.getElementById("report-container");
+  
+  if (tab === "report") {
+    addForm.style.display = "none";
+    menuList.style.display = "none";
+    reportContainer.style.display = "block";
+    loadReport();
+  } else {
+    addForm.style.display = "block";
+    menuList.style.display = "block";
+    reportContainer.style.display = "none";
+    document.getElementById("add-title").textContent = tab === "food" ? "+ Tambah Makanan" : "+ Tambah Minuman";
+    renderList();
+  }
+}
+
+async function loadReport() {
+  const container = document.getElementById("report-popular-items");
+  container.innerHTML = `<div class="spinner"></div>`;
+  try {
+    const res = await fetch("/api/reports/today");
+    const data = await res.json();
+    if (!data.success) throw new Error();
+    
+    document.getElementById("report-revenue").textContent = "Rp " + data.totalRevenue.toLocaleString("id-ID");
+    document.getElementById("report-orders").textContent = data.totalOrders;
+    
+    if (data.popularItems.length === 0) {
+      container.innerHTML = `<div class="empty-state">Belum ada pesanan selesai hari ini</div>`;
+    } else {
+      container.innerHTML = data.popularItems.map((item, i) => `
+        <div style="display:flex; justify-content:space-between; padding:12px; background:var(--bg-input); border-radius:var(--radius-md);">
+          <span style="font-weight:600;"><span style="color:var(--text-muted); margin-right:8px;">#${i+1}</span> ${escHtml(item.name)}</span>
+          <span style="font-weight:800; color:var(--accent);">${item.qty} x</span>
+        </div>
+      `).join("");
+    }
+  } catch (err) {
+    container.innerHTML = `<div style="color:var(--red);">Gagal memuat laporan</div>`;
+  }
+}
+
+function renderList() {
+  const items = menu[currentTab] || [];
+  const icons = ICONS[currentTab];
+  const container = document.getElementById("menu-list-container");
+  if (!items.length) {
+    container.innerHTML = `<div class="empty-state"><div class="empty-icon">📭</div><h3>Belum ada item</h3></div>`;
+    return;
+  }
+  container.innerHTML = items.map((item, i) => `
+    <div class="menu-item-row">
+      <div class="row-icon">${icons[i % icons.length]}</div>
+      <div class="row-info">
+        <div class="row-name">${escHtml(item.name)}</div>
+        <div class="row-desc">${escHtml(item.description || "")}</div>
+      </div>
+      <div class="row-price">Rp ${Number(item.price).toLocaleString("id-ID")}</div>
+      <button class="del-btn" onclick="deleteItem('${item.id}')">🗑 Hapus</button>
+    </div>`).join("");
+}
+
+async function addItem() {
+  const name  = document.getElementById("inp-name").value.trim();
+  const price = parseInt(document.getElementById("inp-price").value);
+  const desc  = document.getElementById("inp-desc").value.trim();
+
+  if (!name || !price || price < 0) { alert("Nama dan harga wajib diisi!"); return; }
+
+  try {
+    const res = await fetch("/api/menu/item", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ category: currentTab, item: { name, price, description: desc } }),
+    });
+    const data = await res.json();
+    if (!data.success) throw new Error();
+    clearForm();
+    await loadMenu();
+  } catch { alert("Gagal menambah item."); }
+}
+
+async function deleteItem(id) {
+  if (!confirm("Hapus item ini?")) return;
+  try {
+    const res = await fetch(`/api/menu/item/${currentTab}/${id}`, { method: "DELETE" });
+    const data = await res.json();
+    if (!data.success) throw new Error();
+    await loadMenu();
+  } catch { alert("Gagal menghapus item."); }
+}
+
+function clearForm() {
+  document.getElementById("inp-name").value = "";
+  document.getElementById("inp-price").value = "";
+  document.getElementById("inp-desc").value = "";
+}
+function toggleSidebar() {
+  document.getElementById('sidebar-nav').classList.toggle('show');
+  document.getElementById('sidebar-overlay').classList.toggle('show');
+}
+function escHtml(s) {
+  return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+}
+</script>
+</body>
+</html>

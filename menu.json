@@ -1,0 +1,371 @@
+{
+  "food": [
+    {
+      "id": "f1",
+      "name": "Nasi Goreng Lokalin",
+      "description": "Our house fried rice. Simple, smoky, and hits different every time.",
+      "price": 48000,
+      "image": "/img/nasi_goreng.png",
+      "category": "Main Food",
+      "stock": 3
+    },
+    {
+      "id": "f2",
+      "name": "Ayam Goreng Rica",
+      "description": "Crispy fried chicken tossed in spicy rica-rica sauce. Not for the faint-hearted.",
+      "price": 50000,
+      "image": "/img/ayam_rica.png",
+      "category": "Main Food"
+    },
+    {
+      "id": "f3",
+      "name": "Nasi Goreng Seafood",
+      "description": "Fried rice loaded with shrimp, squid, and fish cake. A seafood lover's go-to.",
+      "price": 50000,
+      "category": "Main Food"
+    },
+    {
+      "id": "f4",
+      "name": "Mie Goreng Lokalin",
+      "description": "Stir-fried noodles with our signature seasoning. Comfort food done right.",
+      "price": 45000,
+      "category": "Main Food"
+    },
+    {
+      "id": "f5",
+      "name": "Ayam Pallekko (Rice Bowl)",
+      "description": "Sulawesi-style spiced chicken over steamed rice. Bold and full of flavor.",
+      "price": 45000,
+      "category": "Rice Bowl"
+    },
+    {
+      "id": "f6",
+      "name": "Paru Rica (Rice Bowl)",
+      "description": "Crispy beef lung with spicy rica seasoning. A local classic you shouldn't skip.",
+      "price": 45000,
+      "category": "Rice Bowl",
+      "stock": 99
+    },
+    {
+      "id": "f7",
+      "name": "Beef Blackpepper (Rice Bowl)",
+      "description": "Tender beef slices in a rich black pepper sauce. Savory, bold, and satisfying.",
+      "price": 62000,
+      "category": "Rice Bowl"
+    },
+    {
+      "id": "f8",
+      "name": "Salted Egg (Rice Bowl)",
+      "description": "Creamy salted egg sauce over rice. Rich, indulgent, and worth every bite.",
+      "price": 45000,
+      "category": "Rice Bowl"
+    },
+    {
+      "id": "f9",
+      "name": "The Cheese Melt Burger",
+      "description": "Juicy beef patty with melted cheese and our special sauce. No frills, just good.",
+      "price": 45000,
+      "image": "/img/burger.png",
+      "category": "Snacks"
+    },
+    {
+      "id": "f10a",
+      "name": "Pisang Goreng Original",
+      "description": "Crispy fried banana served with a tangy sambal dip.",
+      "price": 25000,
+      "image": "/img/pisang.png",
+      "category": "Snacks",
+      "inStock": true,
+      "stock": 101
+    },
+    {
+      "id": "f10b",
+      "name": "Pisang Goreng Chocolate Cheese",
+      "description": "Fried banana drizzled with chocolate sauce and topped with melted cheese.",
+      "price": 25000,
+      "image": "/img/pisang.png",
+      "category": "Snacks",
+      "inStock": true,
+      "stock": 100
+    },
+    {
+      "id": "f10c",
+      "name": "Pisang Goreng Chocolate",
+      "description": "Fried banana coated in rich chocolate glaze.",
+      "price": 25000,
+      "image": "/img/pisang.png",
+      "category": "Snacks",
+      "inStock": true,
+      "stock": 100
+    },
+    {
+      "id": "f10d",
+      "name": "Pisang Goreng Cheese",
+      "description": "Fried banana topped with smooth cheese.",
+      "price": 25000,
+      "image": "/img/pisang.png",
+      "category": "Snacks",
+      "inStock": true,
+      "stock": 100
+    },
+    {
+      "id": "f11",
+      "name": "Chicken Wings",
+      "description": "Crispy wings with a well-seasoned marinade. Great for sharing — or not.",
+      "price": 35000,
+      "category": "Snacks"
+    },
+    {
+      "id": "f12",
+      "name": "French Fries",
+      "description": "Golden and crispy. Classic for a reason.",
+      "price": 28000,
+      "category": "Snacks"
+    },
+    {
+      "id": "f14",
+      "name": "Paket Nongkrong",
+      "description": "Cold Sweet Coffee + Pisang Goreng. Good for long hangs.",
+      "price": 45000,
+      "category": "Snacks",
+      "stock": 99
+    },
+    {
+      "id": "f15",
+      "name": "Paket Hemat Lokalin",
+      "description": "Ayam Pallekko + Lychee Tea. A solid meal deal that won't break the bank.",
+      "price": 55000,
+      "category": "Snacks"
+    },
+    {
+      "id": "f16",
+      "name": "Tiramisu Cake",
+      "description": "Espresso-soaked layers with mascarpone cream. Classic Italian, no compromise.",
+      "price": 35000,
+      "category": "Snacks"
+    },
+    {
+      "id": "f17",
+      "name": "Strawberry Cheese Cake",
+      "description": "Creamy cheesecake topped with fresh strawberry. Sweet, tangy, and smooth.",
+      "price": 38000,
+      "category": "Snacks"
+    },
+    {
+      "price": 10000,
+      "description": "Item tes dari API",
+      "name": "Tes Item Admin",
+      "id": "f18"
+    }
+  ],
+  "drinks": [
+    {
+      "id": "d1",
+      "name": "Americano",
+      "description": "Straight espresso with water. Clean and no-nonsense.",
+      "price": 25000,
+      "category": "Coffee Series",
+      "hotCold": true
+    },
+    {
+      "id": "d28",
+      "name": "Peach Bloom Americano",
+      "description": "Americano with syrup peach. Bitter meets sweet in the best way.",
+      "price": 25000,
+      "category": "Coffee Series"
+    },
+    {
+      "id": "d2",
+      "name": "Coffee Latte",
+      "description": "Espresso with steamed milk. Smooth, mellow, and easy to love.",
+      "price": 28000,
+      "category": "Coffee Series",
+      "hotCold": true
+    },
+    {
+      "id": "d3",
+      "name": "Capuccino",
+      "description": "Espresso, steamed milk, and thick foam. A timeless ratio.",
+      "price": 28000,
+      "category": "Coffee Series"
+    },
+    {
+      "id": "d4",
+      "name": "Kopi Susu",
+      "description": "Local robusta with fresh milk. The everyday cup, done well.",
+      "price": 25000,
+      "category": "Coffee Series",
+      "hotCold": true
+    },
+    {
+      "id": "d5",
+      "name": "Cold Sweet Coffee",
+      "description": "Sweet iced coffee with plenty of ice. Your afternoon pick-me-up.",
+      "price": 30000,
+      "image": "/img/kopi.png",
+      "category": "Coffee Series",
+      "hotCold": true
+    },
+    {
+      "id": "d6",
+      "name": "Vanilla Coffee",
+      "description": "Coffee with a hint of vanilla. Subtle, soft, and just sweet enough.",
+      "price": 30000,
+      "category": "Coffee Series"
+    },
+    {
+      "id": "d22",
+      "name": "Caramel Coffee",
+      "description": "Espresso with caramel drizzle. Sweet but still feels like coffee.",
+      "price": 30000,
+      "category": "Coffee Series"
+    },
+    {
+      "id": "d23",
+      "name": "Hazelnut Coffee",
+      "description": "Coffee with a nutty hazelnut kick. Warm and slightly indulgent.",
+      "price": 30000,
+      "category": "Coffee Series"
+    },
+    {
+      "id": "d7",
+      "name": "Lokalin Signature",
+      "description": "Our barista's own creation. You won't find this anywhere else.",
+      "price": 35000,
+      "image": "/img/kopi.png",
+      "category": "Signature Coffee",
+      "inStock": false
+    },
+    {
+      "id": "d8",
+      "name": "Butterscotch Coffee",
+      "description": "Rich butterscotch with espresso. Sweet, buttery, and dangerously smooth.",
+      "price": 35000,
+      "category": "Signature Coffee",
+      "inStock": false
+    },
+    {
+      "id": "d9",
+      "name": "Salted Caramel Coffee",
+      "description": "Caramel and a pinch of sea salt over espresso. That contrast is the point.",
+      "price": 35000,
+      "category": "Signature Coffee"
+    },
+    {
+      "id": "d10",
+      "name": "Pandan Coffee",
+      "description": "Espresso with fresh pandan extract. Earthy, fragrant, and uniquely local.",
+      "price": 32000,
+      "category": "Signature Coffee"
+    },
+    {
+      "id": "d11",
+      "name": "Banana Coffee",
+      "description": "Coffee with banana syrup. Creamy, naturally sweet, and surprisingly good.",
+      "price": 32000,
+      "category": "Signature Coffee"
+    },
+    {
+      "id": "d27",
+      "name": "Summer Paradise",
+      "description": "Premium coffee with tropical syrup and ice. Tastes exactly like it sounds.",
+      "price": 45000,
+      "category": "Signature Coffee"
+    },
+    {
+      "id": "d21",
+      "name": "V60 Filter Coffee",
+      "description": "Slow pour-over, clean cup. For those who actually taste their coffee.",
+      "price": 35000,
+      "category": "Coffee Series"
+    },
+    {
+      "id": "d12",
+      "name": "Tea (Hot/Ice)",
+      "description": "Simple premium tea, served however you like it.",
+      "price": 15000,
+      "category": "Non Coffee Series"
+    },
+    {
+      "id": "d13",
+      "name": "Lychee Tea",
+      "description": "Tea with lychee syrup. Light, sweet, and always refreshing.",
+      "price": 25000,
+      "category": "Non Coffee Series",
+      "hotCold": true
+    },
+    {
+      "id": "d14",
+      "name": "Lemon Tea",
+      "description": "Tea with a squeeze of lemon. Bright, tangy, and does the job.",
+      "price": 25000,
+      "category": "Non Coffee Series",
+      "hotCold": true
+    },
+    {
+      "id": "d15",
+      "name": "Peach Tea",
+      "description": "Tea infused with peach. Fruity, smooth, and easy to drink.",
+      "price": 25000,
+      "category": "Non Coffee Series",
+      "hotCold": true
+    },
+    {
+      "id": "d16",
+      "name": "Matcha",
+      "description": "Premium Japanese matcha with fresh milk. Earthy and creamy.",
+      "price": 30000,
+      "category": "Non Coffee Series"
+    },
+    {
+      "id": "d17",
+      "name": "Chocolate",
+      "description": "Rich Belgian chocolate drink. The go-to when you need comfort.",
+      "price": 30000,
+      "category": "Non Coffee Series"
+    },
+    {
+      "id": "d18",
+      "name": "Redvelvet",
+      "description": "Creamy red velvet drink with a hint of cocoa. Sweet and smooth.",
+      "price": 30000,
+      "category": "Non Coffee Series"
+    },
+    {
+      "id": "d19",
+      "name": "Thai Tea",
+      "description": "The real deal Thai tea with condensed milk. Sweet, orange, and iconic.",
+      "price": 25000,
+      "category": "Non Coffee Series"
+    },
+    {
+      "id": "d20",
+      "name": "Markisa",
+      "description": "Fresh passion fruit juice. Naturally tart and tropical.",
+      "price": 25000,
+      "category": "Non Coffee Series",
+      "inStock": false
+    },
+    {
+      "id": "d24",
+      "name": "Lychee Squash",
+      "description": "Sparkling water with lychee syrup. Bubbly and light.",
+      "price": 30000,
+      "category": "Non Coffee Series"
+    },
+    {
+      "id": "d25",
+      "name": "Peach Squash",
+      "description": "Fizzy peach soda. Sweet and great on a warm day.",
+      "price": 30000,
+      "category": "Non Coffee Series"
+    },
+    {
+      "id": "d26",
+      "name": "Lemon Squash",
+      "description": "Sparkling lemon drink. Sharp, citrusy, and very refreshing.",
+      "price": 30000,
+      "category": "Non Coffee Series"
+    }
+  ]
+}

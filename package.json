@@ -1,0 +1,19 @@
+{
+  "name": "lokalin-restaurant-ordering",
+  "version": "1.0.0",
+  "description": "LAN-based restaurant ordering system — no internet required",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.106.2",
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "node-thermal-printer": "^4.4.1",
+    "pg": "^8.21.0",
+    "sql.js": "^1.12.0",
+    "ws": "^8.17.0"
+  }
+}
