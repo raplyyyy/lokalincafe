@@ -9,7 +9,7 @@
 
     if (savedPin !== SECRET_PIN) {
         // Tampilkan pop-up keamanan yang menghentikan layar
-        const userInput = prompt("🔒 AREA TERBATAS\n\nMasukkan 4 digit PIN Rahasia untuk masuk (Default: 1234):");
+        const userInput = prompt("🔒 AREA TERBATAS\n\nMasukkan 4 digit PIN Rahasia staf Lokalin:");
 
         if (userInput === SECRET_PIN) {
             // Jika benar, simpan di memori tablet agar tidak ditanya lagi
