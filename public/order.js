@@ -8,21 +8,11 @@ let pendingHotCold = null; // { item, delta }
 let pendingVariant = null;
 
 const FOOD_FALLBACKS = [
-  "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=400&q=80",
-  "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?auto=format&fit=crop&w=400&q=80",
-  "https://images.unsplash.com/photo-1482049016688-2d3e1b311543?auto=format&fit=crop&w=400&q=80",
-  "https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?auto=format&fit=crop&w=400&q=80",
-  "https://images.unsplash.com/photo-1512152272829-e3139592d56f?auto=format&fit=crop&w=400&q=80",
-  "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?auto=format&fit=crop&w=400&q=80"
+  `<svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></svg>`
 ];
 
 const DRINK_FALLBACKS = [
-  "https://images.unsplash.com/photo-1497935586351-b67a49e012bf?auto=format&fit=crop&w=400&q=80",
-  "https://images.unsplash.com/photo-1559525839-b184a4d698c7?auto=format&fit=crop&w=400&q=80",
-  "https://images.unsplash.com/photo-1572442388796-11668a67e53d?auto=format&fit=crop&w=400&q=80",
-  "https://images.unsplash.com/photo-1544145945-f90425340c7e?auto=format&fit=crop&w=400&q=80",
-  "https://images.unsplash.com/photo-1517701550927-30cf4ba1dba5?auto=format&fit=crop&w=400&q=80",
-  "https://images.unsplash.com/photo-1461023058943-07cb1ce8e7dd?auto=format&fit=crop&w=400&q=80"
+  `<svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 8h1a4 4 0 1 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"/><path d="M6 2v2"/><path d="M10 2v2"/><path d="M14 2v2"/></svg>`
 ];
 
 // ─── Init ─────────────────────────────────────────────────────────────────────
@@ -113,9 +103,10 @@ function renderMenuList(containerId, items, icons) {
   el.innerHTML = pillsHtml + html;
 }
 
-function menuItemHTML(item, fallbackImage) {
-  const imageUrl = item.image || fallbackImage;
-  const media = `<div class="item-image" style="background-image: url('${imageUrl}')"></div>`;
+function menuItemHTML(item, fallbackIconSvg) {
+  const media = item.image
+    ? `<div class="item-image" style="background-image: url('${item.image}')"></div>`
+    : `<div class="item-icon">${fallbackIconSvg}</div>`;
 
   // For hotCold items, the qty display shows combined qty of both variants
   const qtyDisplay = `<span class="qty-value" id="qty-val-${item.id}">0</span>`;
