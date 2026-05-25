@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cetak QR Code Meja</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;700&display=swap');
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: #f4f4f4;
+            padding: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+        }
+        .qr-card {
+            background: #fff;
+            width: 300px;
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            text-align: center;
+            border: 2px solid #E63946;
+        }
+        .qr-card h1 {
+            color: #E63946;
+            margin-top: 0;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        .qr-card h2 {
+            font-size: 1.2rem;
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .qr-card img {
+            width: 100%;
+            height: auto;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+        .qr-card p {
+            font-size: 0.9rem;
+            color: #777;
+            margin: 0;
+        }
+        .print-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: #E63946;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.2rem;
+            border-radius: 30px;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(230,57,70,0.4);
+            font-family: 'Outfit', sans-serif;
+            font-weight: bold;
+        }
+        @media print {
+            body { background: white; padding: 0; }
+            .print-btn { display: none; }
+            .qr-card { box-shadow: none; border: 2px solid #000; page-break-inside: avoid; }
+        }
+    </style>
+</head>
+<body>
+
+    <script>
+        const baseUrl = "https://lokalincafe.vercel.app/order?table=";
+        for(let i=1; i<=4; i++) {
+            const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(baseUrl + i)}`;
+            document.write(`
+                <div class="qr-card">
+                    <h1>MEJA ${i}</h1>
+                    <h2>Scan untuk Memesan</h2>
+                    <img src="${qrUrl}" alt="QR Code Meja ${i}" crossorigin="anonymous" />
+                    <p>lokalincafe.vercel.app</p>
+                </div>
+            `);
+        }
+    </script>
+
+    <button class="print-btn" onclick="window.print()">🖨️ Cetak QR Code</button>
+
+</body>
+</html>
