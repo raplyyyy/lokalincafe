@@ -276,6 +276,12 @@ app.get("/api/reports/today", async (req, res) => {
   }
 });
 
+// ─── Frontend Redirect ────────────────────────────────────────────────────────
+
+app.get("/", (req, res) => {
+  res.redirect("/order");
+});
+
 // ─── Start Server ─────────────────────────────────────────────────────────────
 
 async function start() {
