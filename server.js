@@ -62,7 +62,8 @@ app.get("/api/menu", async (req, res) => {
     // Group into { food: [], drinks: [] } for frontend
     const menu = { food: [], drinks: [] };
     for (const item of data) {
-      if (item.category === 'Coffee' || item.category === 'Non-Coffee' || item.category === 'drinks') {
+      const cat = item.category ? item.category.toLowerCase() : "";
+      if (cat.includes('coffee') || cat.includes('kopi') || cat.includes('drink') || cat.includes('minuman') || cat.includes('tea') || cat.includes('teh') || cat.includes('juice') || cat.includes('jus') || cat.includes('blend')) {
         menu.drinks.push(item);
       } else {
         menu.food.push(item);

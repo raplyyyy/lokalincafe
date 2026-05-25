@@ -1011,7 +1011,7 @@ input[type=number] { -moz-appearance: textfield; }
 .btn-success:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(16, 185, 129, 0.6); }
 
 
-.category-pills { display: flex; gap: 8px; padding: 12px 20px 4px; overflow-x: auto; scrollbar-width: none; }
+.category-pills { display: flex; flex-wrap: wrap; gap: 8px; padding: 12px 20px 12px; }
 .category-pills::-webkit-scrollbar { display: none; }
 .pill-btn { background: var(--bg-card); color: var(--text-secondary); border: 1px solid rgba(0,0,0,0.05); padding: 8px 16px; border-radius: 999px; font-weight: 600; font-size: 0.85rem; cursor: pointer; white-space: nowrap; transition: 0.2s; box-shadow: 0 2px 8px rgba(0,0,0,0.03); }
 .pill-btn:hover { background: var(--accent); color: #fff; transform: translateY(-2px); }
