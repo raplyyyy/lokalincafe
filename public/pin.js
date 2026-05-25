@@ -1,8 +1,8 @@
 // pin.js
-(function() {
+(function () {
     // PIN Rahasia Default: 1234
     // Anda bisa menggantinya di bawah ini kapan saja
-    const SECRET_PIN = "1234"; 
+    const SECRET_PIN = "Lokalin@Cafe";
 
     // Cek apakah perangkat ini sudah pernah memasukkan PIN
     const savedPin = localStorage.getItem('lokalin_admin_pin');
