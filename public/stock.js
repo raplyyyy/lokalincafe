@@ -557,13 +557,15 @@ closeDayBtn.addEventListener('click', async () => {
     const todayStr = new Date().toLocaleString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
     
     const snapshot = stockData[currentTab].map(item => {
+        const expectedBar = calculateExpectedBar(item);
+        const barBalanceNotSet = currentTab === 'bar' && (item.spoil === "" || item.spoil == null || item.spoil === 0);
         return {
             name: item.name,
             initial: item.initial,
             in: item.in,
             out: item.out,
-            spoil: currentTab === 'bar' && (item.spoil === "" || item.spoil == null) ? calculateExpectedBar(item) : item.spoil,
-            final: currentTab === 'bar' ? (item.spoil === "" || item.spoil == null ? calculateExpectedBar(item) : item.spoil) : calculateFinalStock(item)
+            spoil: barBalanceNotSet ? expectedBar : item.spoil,
+            final: barBalanceNotSet ? expectedBar : (currentTab === 'bar' ? item.spoil : calculateFinalStock(item))
         };
     });
 
@@ -574,7 +576,9 @@ closeDayBtn.addEventListener('click', async () => {
     stockData[currentTab] = stockData[currentTab].map(item => {
         let finalStock;
         if (currentTab === 'bar') {
-            finalStock = (item.spoil === "" || item.spoil == null) ? calculateExpectedBar(item) : item.spoil;
+            const expectedBar = calculateExpectedBar(item);
+            const balanceNotSet = (item.spoil === "" || item.spoil == null || item.spoil === 0);
+            finalStock = balanceNotSet ? expectedBar : item.spoil;
         } else {
             finalStock = calculateFinalStock(item);
         }
