@@ -88,19 +88,31 @@ async function initStockData() {
     } catch (e) { console.error("Cloud sync init failed"); }
     
     // Fallback to local storage if cloud fails or is empty
+    let localFound = false;
     const savedKitchen = localStorage.getItem('lokalin_kitchen_stock_data');
     if (savedKitchen) {
         try {
             const parsed = JSON.parse(savedKitchen);
-            if(Array.isArray(parsed) && parsed.length > 0) stockData.kitchen = parsed;
+            if(Array.isArray(parsed) && parsed.length > 0) {
+                stockData.kitchen = parsed;
+                localFound = true;
+            }
         } catch (e) { }
     }
     const savedBar = localStorage.getItem('lokalin_bar_stock_data_v2');
     if (savedBar) {
         try {
             const parsed = JSON.parse(savedBar);
-            if(Array.isArray(parsed) && parsed.length > 0) stockData.bar = parsed;
+            if(Array.isArray(parsed) && parsed.length > 0) {
+                stockData.bar = parsed;
+                localFound = true;
+            }
         } catch (e) { }
+    }
+    
+    // If we loaded from local, push it to cloud immediately to migrate!
+    if (localFound) {
+        saveData(); 
     }
     renderTable();
 }
@@ -510,10 +522,16 @@ async function getHistory() {
         const res = await fetch(`/api/stock/history_${currentTab}`);
         if(res.ok) {
             const cloudData = await res.json();
-            if (Array.isArray(cloudData)) return cloudData;
+            if (Array.isArray(cloudData) && cloudData.length > 0) return cloudData;
         }
     } catch(e) {}
-    return getHistoryLocal();
+    
+    // Fallback to local, and push to cloud if found!
+    const localHist = getHistoryLocal();
+    if (localHist.length > 0) {
+        saveHistory(localHist);
+    }
+    return localHist;
 }
 
 async function saveHistory(historyArray) {
