@@ -62,6 +62,7 @@ app.get("/api/menu", async (req, res) => {
     // Group into { food: [], drinks: [] } for frontend
     const menu = { food: [], drinks: [] };
     for (const item of data) {
+      if (item.id.startsWith('SYS_STOCK_')) continue;
       const cat = item.category ? item.category.toLowerCase() : "";
       if (cat.includes('coffee') || cat.includes('kopi') || cat.includes('drink') || cat.includes('minuman') || cat.includes('tea') || cat.includes('teh') || cat.includes('juice') || cat.includes('jus') || cat.includes('blend')) {
         menu.drinks.push(item);
@@ -281,6 +282,37 @@ app.get("/api/reports/today", async (req, res) => {
 
 app.get("/", (req, res) => {
   res.redirect("/order");
+});
+
+// --- Stock Sync Endpoints ---
+app.get("/api/stock/:key", async (req, res) => {
+  try {
+    const key = `SYS_STOCK_${req.params.key.toUpperCase()}`;
+    const { data, error } = await supabase.from('menu').select('description').eq('id', key).single();
+    if (error && error.code !== 'PGRST116') throw error;
+    if (!data || !data.description) return res.json(null);
+    res.json(JSON.parse(data.description));
+  } catch (err) {
+    res.status(500).json({ error: "Failed to fetch stock" });
+  }
+});
+
+app.post("/api/stock/:key", async (req, res) => {
+  try {
+    const key = `SYS_STOCK_${req.params.key.toUpperCase()}`;
+    const payload = JSON.stringify(req.body);
+    const { error } = await supabase.from('menu').upsert({
+      id: key,
+      name: `System Data: ${key}`,
+      description: payload,
+      price: 0,
+      category: 'System'
+    }, { onConflict: 'id' });
+    if (error) throw error;
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to save stock" });
+  }
 });
 
 // ─── Start Server ─────────────────────────────────────────────────────────────

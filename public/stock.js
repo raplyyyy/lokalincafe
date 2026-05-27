@@ -71,21 +71,38 @@ let stockData = {
     ]
 };
 
-// Load from local storage if available
-const savedKitchen = localStorage.getItem('lokalin_kitchen_stock_data');
-if (savedKitchen) {
+// Cloud Sync Initialization
+async function initStockData() {
     try {
-        const parsed = JSON.parse(savedKitchen);
-        if(Array.isArray(parsed) && parsed.length > 0) stockData.kitchen = parsed;
-    } catch (e) { console.error("Failed to parse kitchen data"); }
-}
-
-const savedBar = localStorage.getItem('lokalin_bar_stock_data_v2');
-if (savedBar) {
-    try {
-        const parsed = JSON.parse(savedBar);
-        if(Array.isArray(parsed) && parsed.length > 0) stockData.bar = parsed;
-    } catch (e) { console.error("Failed to parse bar data"); }
+        const res = await fetch('/api/stock/data');
+        if (res.ok) {
+            const cloudData = await res.json();
+            if (cloudData && Array.isArray(cloudData.kitchen) && Array.isArray(cloudData.bar)) {
+                stockData = cloudData;
+                localStorage.setItem('lokalin_kitchen_stock_data', JSON.stringify(stockData.kitchen));
+                localStorage.setItem('lokalin_bar_stock_data_v2', JSON.stringify(stockData.bar));
+                renderTable();
+                return;
+            }
+        }
+    } catch (e) { console.error("Cloud sync init failed"); }
+    
+    // Fallback to local storage if cloud fails or is empty
+    const savedKitchen = localStorage.getItem('lokalin_kitchen_stock_data');
+    if (savedKitchen) {
+        try {
+            const parsed = JSON.parse(savedKitchen);
+            if(Array.isArray(parsed) && parsed.length > 0) stockData.kitchen = parsed;
+        } catch (e) { }
+    }
+    const savedBar = localStorage.getItem('lokalin_bar_stock_data_v2');
+    if (savedBar) {
+        try {
+            const parsed = JSON.parse(savedBar);
+            if(Array.isArray(parsed) && parsed.length > 0) stockData.bar = parsed;
+        } catch (e) { }
+    }
+    renderTable();
 }
 
 // Elements
@@ -95,13 +112,29 @@ const closeDayBtn = document.getElementById('closeDayBtn');
 const saveDraftBtn = document.getElementById('saveDraftBtn');
 const viewHistoryBtn = document.getElementById('viewHistoryBtn');
 
-// Utility to save to local storage
+// Utility to save to local storage and sync to cloud
+let syncTimeout = null;
 function saveData() {
     if (currentTab === 'kitchen') {
         localStorage.setItem('lokalin_kitchen_stock_data', JSON.stringify(stockData.kitchen));
     } else {
         localStorage.setItem('lokalin_bar_stock_data_v2', JSON.stringify(stockData.bar));
     }
+    
+    // Sync to cloud (debounced 2 seconds to avoid spam)
+    clearTimeout(syncTimeout);
+    syncTimeout = setTimeout(async () => {
+        try {
+            await fetch('/api/stock/data', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(stockData)
+            });
+            document.getElementById('add-title').innerHTML = currentTab === 'kitchen' 
+                ? '🍳 Tambah Menu (Tersinkronisasi ☁️)' 
+                : '🍹 Tambah Menu (Tersinkronisasi ☁️)';
+        } catch(e) { console.error('Cloud sync failed'); }
+    }, 2000);
 }
 
 function calculateFinalStock(item) {
@@ -162,7 +195,9 @@ function renderTable() {
     }
 
     currentData.forEach((item, index) => {
-        const finalStock = currentTab === 'bar' ? calculateExpectedBar(item) : calculateFinalStock(item);
+        let barBalanceValue = item.spoil === "" || item.spoil === null || item.spoil === undefined ? "" : item.spoil;
+        const expectedBar = calculateExpectedBar(item);
+        const finalStock = currentTab === 'bar' ? (barBalanceValue === "" ? expectedBar : barBalanceValue) : calculateFinalStock(item);
         
         let stockClass = 'stock-normal';
         if (finalStock < 0) {
@@ -178,8 +213,8 @@ function renderTable() {
                 <td><input type="number" class="initial-input" data-index="${index}" value="${item.initial}" min="0"></td>
                 <td><input type="number" class="in-input" data-index="${index}" value="${item.in}" min="0"></td>
                 <td><input type="number" class="out-input" data-index="${index}" value="${item.out}" min="0"></td>
-                <td><input type="number" class="spoil-input" data-index="${index}" value="${item.spoil}" min="0" style="background:var(--bg-card); border-color:var(--accent);" title="Sisa Fisik Aktual"></td>
-                <td class="text-center"><span class="stock-akhir-badge ${stockClass}" title="Estimasi Akhir (Awal + IN - OUT)">${finalStock}</span></td>
+                <td><input type="number" class="spoil-input" data-index="${index}" value="${barBalanceValue}" placeholder="${expectedBar}" min="0" style="background:var(--bg-card); border-color:var(--accent);" title="Sisa Fisik Aktual. Kosongkan jika sama dengan Est Akhir."></td>
+                <td class="text-center"><span class="stock-akhir-badge ${stockClass}" title="Estimasi Akhir (Awal + IN - OUT)">${expectedBar}</span></td>
                 <td class="text-center"><button class="icon-btn-del delete-btn" data-index="${index}" title="Hapus Menu">🗑</button></td>
             `;
         } else {
@@ -202,24 +237,32 @@ function renderTable() {
 
 function updateRowUI(index) {
     const item = stockData[currentTab][index];
-    const finalStock = currentTab === 'bar' ? calculateExpectedBar(item) : calculateFinalStock(item);
+    let barBalanceValue = item.spoil === "" || item.spoil === null || item.spoil === undefined ? "" : item.spoil;
+    const expectedBar = calculateExpectedBar(item);
+    const finalStock = currentTab === 'bar' ? expectedBar : calculateFinalStock(item);
     
     const row = tableBody.querySelectorAll('tr')[index];
     if (!row) return; 
     
     const finalStockBadge = row.querySelector('.stock-akhir-badge');
-    if (!finalStockBadge) return;
-    
-    finalStockBadge.textContent = finalStock;
-    
-    // Update classes
-    finalStockBadge.className = 'stock-akhir-badge';
-    if (finalStock < 0) {
-        finalStockBadge.classList.add('stock-danger');
-    } else if (finalStock === 0) {
-        finalStockBadge.classList.add('stock-warning');
-    } else {
-        finalStockBadge.classList.add('stock-normal');
+    if (finalStockBadge) {
+        finalStockBadge.textContent = finalStock;
+        
+        finalStockBadge.className = 'stock-akhir-badge';
+        if (finalStock < 0) {
+            finalStockBadge.classList.add('stock-danger');
+        } else if (finalStock === 0) {
+            finalStockBadge.classList.add('stock-warning');
+        } else {
+            finalStockBadge.classList.add('stock-normal');
+        }
+    }
+
+    if (currentTab === 'bar') {
+        const spoilInput = row.querySelector('.spoil-input');
+        if (spoilInput) {
+            spoilInput.placeholder = expectedBar;
+        }
     }
 }
 
@@ -246,7 +289,7 @@ function attachInputListeners() {
         
         if (isNaN(value) || value < 0) {
             if (valStr === "") {
-                value = 0; 
+                value = ""; 
             } else {
                 value = 0;
                 e.target.value = 0;
@@ -262,12 +305,16 @@ function attachInputListeners() {
 
     const handleBlur = (e, field) => {
         if (e.target.value === "") {
-            e.target.value = 0;
-            const index = e.target.getAttribute('data-index');
-            stockData[currentTab][index][field] = 0;
-            saveData();
-            updateRowUI(index);
-            checkAllAlerts();
+            if (currentTab === 'bar' && field === 'spoil') {
+                // Allow empty for bar balance (defaults to expected)
+            } else {
+                e.target.value = 0;
+                const index = e.target.getAttribute('data-index');
+                stockData[currentTab][index][field] = 0;
+                saveData();
+                updateRowUI(index);
+                checkAllAlerts();
+            }
         }
     };
 
@@ -371,7 +418,7 @@ window.processExportExcel = function() {
             "Awal": item.initial,
             "IN": item.in,
             "OUT": item.out,
-            "Spoil / Sisa Fisik": item.spoil,
+            "Spoil / Sisa Fisik": currentTab === 'bar' && (item.spoil === "" || item.spoil == null) ? calculateExpectedBar(item) : item.spoil,
             "Akhir / Terpakai": currentTab === 'bar' ? calculateExpectedBar(item) : calculateFinalStock(item)
         }));
     } 
@@ -452,22 +499,43 @@ window.processExportExcel = function() {
 }
 
 // Close Day & Recap Logic
-function getHistory() {
+function getHistoryLocal() {
     const key = currentTab === 'kitchen' ? 'lokalin_kitchen_stock_history' : 'lokalin_bar_stock_history';
     const raw = localStorage.getItem(key);
     return raw ? JSON.parse(raw) : [];
 }
 
-function saveHistory(historyArray) {
-    const key = currentTab === 'kitchen' ? 'lokalin_kitchen_stock_history' : 'lokalin_bar_stock_history';
-    localStorage.setItem(key, JSON.stringify(historyArray));
+async function getHistory() {
+    try {
+        const res = await fetch(`/api/stock/history_${currentTab}`);
+        if(res.ok) {
+            const cloudData = await res.json();
+            if (Array.isArray(cloudData)) return cloudData;
+        }
+    } catch(e) {}
+    return getHistoryLocal();
 }
 
-closeDayBtn.addEventListener('click', () => {
+async function saveHistory(historyArray) {
+    const key = currentTab === 'kitchen' ? 'lokalin_kitchen_stock_history' : 'lokalin_bar_stock_history';
+    localStorage.setItem(key, JSON.stringify(historyArray));
+    try {
+        await fetch(`/api/stock/history_${currentTab}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(historyArray)
+        });
+    } catch(e) {}
+}
+
+closeDayBtn.addEventListener('click', async () => {
     const confirmClose = confirm(`Anda yakin ingin 'Tutup Hari' untuk bagian ${currentTab.toUpperCase()}?\n\nData hari ini akan disimpan ke Rekap, lalu Stock Akhir akan menjadi Stock Awal untuk besok, dan nilai Masuk/Keluar/Rusak akan dikosongkan.`);
     if (!confirmClose) return;
 
-    const history = getHistory();
+    closeDayBtn.disabled = true;
+    closeDayBtn.innerHTML = "Menyimpan ke Cloud... ☁️";
+
+    const history = await getHistory();
     const todayStr = new Date().toLocaleString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
     
     const snapshot = stockData[currentTab].map(item => {
@@ -476,39 +544,47 @@ closeDayBtn.addEventListener('click', () => {
             initial: item.initial,
             in: item.in,
             out: item.out,
-            spoil: item.spoil,
-            final: currentTab === 'bar' ? item.spoil : calculateFinalStock(item)
+            spoil: currentTab === 'bar' && (item.spoil === "" || item.spoil == null) ? calculateExpectedBar(item) : item.spoil,
+            final: currentTab === 'bar' ? (item.spoil === "" || item.spoil == null ? calculateExpectedBar(item) : item.spoil) : calculateFinalStock(item)
         };
     });
 
     history.unshift({ date: todayStr, items: snapshot });
-    saveHistory(history);
+    await saveHistory(history);
 
     // Reset current stock for next day
     stockData[currentTab] = stockData[currentTab].map(item => {
-        const finalStock = currentTab === 'bar' ? item.spoil : calculateFinalStock(item);
+        let finalStock;
+        if (currentTab === 'bar') {
+            finalStock = (item.spoil === "" || item.spoil == null) ? calculateExpectedBar(item) : item.spoil;
+        } else {
+            finalStock = calculateFinalStock(item);
+        }
         return {
             ...item,
             initial: finalStock,
             in: 0,
             out: 0,
-            spoil: 0
+            spoil: currentTab === 'bar' ? "" : 0
         };
     });
     
     saveData();
     renderTable();
-    alert(`Berhasil Tutup Hari untuk ${currentTab.toUpperCase()}! Rekap telah disimpan.`);
+    closeDayBtn.disabled = false;
+    closeDayBtn.innerHTML = "Tutup Hari & Simpan Rekap";
+    alert(`Berhasil Tutup Hari untuk ${currentTab.toUpperCase()}! Rekap telah disinkronkan ke Cloud.`);
 });
 
 // History Modal Logic
-window.clearHistory = function() {
+window.clearHistory = async function() {
     if(confirm(`Yakin ingin menghapus SELURUH riwayat rekap ${currentTab.toUpperCase()}? Data yang dihapus tidak bisa dikembalikan.`)) {
         const key = currentTab === 'kitchen' ? 'lokalin_kitchen_stock_history' : 'lokalin_bar_stock_history';
         localStorage.removeItem(key);
+        await saveHistory([]);
         document.getElementById('historyModal').classList.remove('show');
         setTimeout(() => viewHistoryBtn.click(), 50);
-        alert(`Riwayat rekap ${currentTab.toUpperCase()} berhasil dibersihkan!`);
+        alert(`Riwayat rekap ${currentTab.toUpperCase()} berhasil dibersihkan dari Cloud!`);
     }
 }
 
@@ -516,8 +592,8 @@ window.closeHistoryModal = function() {
     document.getElementById('historyModal').classList.remove('show');
 }
 
-viewHistoryBtn.addEventListener('click', () => {
-    const history = getHistory();
+viewHistoryBtn.addEventListener('click', async () => {
+    const history = await getHistory();
     const container = document.getElementById('historyContainer');
     
     // Set Modal Title based on tab
@@ -576,7 +652,7 @@ viewHistoryBtn.addEventListener('click', () => {
 });
 
 // Initialize
-renderTable();
+initStockData();
 
 if (saveDraftBtn) {
     saveDraftBtn.addEventListener('click', () => {
