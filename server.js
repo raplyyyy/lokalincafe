@@ -278,6 +278,61 @@ app.get("/api/reports/today", async (req, res) => {
   }
 });
 
+// GET /api/reports/date?date=YYYY-MM-DD  (or ?month=YYYY-MM for monthly)
+app.get("/api/reports/date", async (req, res) => {
+  try {
+    const { date, month } = req.query;
+    let startISO, endISO;
+
+    if (month) {
+      // Monthly: e.g. 2026-05
+      const [y, m] = month.split('-').map(Number);
+      const start = new Date(y, m - 1, 1);
+      const end   = new Date(y, m, 1);
+      startISO = start.toISOString();
+      endISO   = end.toISOString();
+    } else if (date) {
+      // Daily: e.g. 2026-05-27
+      const [y, m, d] = date.split('-').map(Number);
+      const start = new Date(y, m - 1, d);
+      const end   = new Date(y, m - 1, d + 1);
+      startISO = start.toISOString();
+      endISO   = end.toISOString();
+    } else {
+      return res.status(400).json({ error: 'Provide ?date=YYYY-MM-DD or ?month=YYYY-MM' });
+    }
+
+    const { data: orders, error } = await supabase
+      .from('orders')
+      .select('*')
+      .eq('isPaid', true)
+      .gte('createdAt', startISO)
+      .lt('createdAt', endISO);
+
+    if (error) throw error;
+
+    let totalRevenue = 0;
+    const itemCounts = {};
+
+    orders.forEach(order => {
+      totalRevenue += (order.totalPrice || 0);
+      const items = [...(order.foodItems || []), ...(order.drinkItems || [])];
+      items.forEach(item => {
+        itemCounts[item.name] = (itemCounts[item.name] || 0) + (item.qty || 1);
+      });
+    });
+
+    const popularItems = Object.entries(itemCounts)
+      .map(([name, qty]) => ({ name, qty }))
+      .sort((a, b) => b.qty - a.qty);
+
+    res.json({ success: true, totalRevenue, totalOrders: orders.length, popularItems });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to load reports" });
+  }
+});
+
 // ─── Frontend Redirect ────────────────────────────────────────────────────────
 
 app.get("/", (req, res) => {

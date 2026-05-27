@@ -62,9 +62,31 @@
 
   <!-- Report Dashboard -->
   <div id="report-container" style="display:none;">
+    <!-- Filter Bar -->
+    <div style="background:var(--bg-card); padding:16px 20px; border-radius:var(--radius-lg); border:1px solid var(--border); margin-bottom:20px; display:flex; flex-wrap:wrap; gap:12px; align-items:flex-end;">
+      <div style="flex:1; min-width:140px;">
+        <label style="font-size:0.78rem; font-weight:700; color:var(--text-muted); display:block; margin-bottom:6px; text-transform:uppercase;">Mode</label>
+        <select id="report-mode" onchange="toggleReportMode()" style="width:100%; padding:8px 12px; border-radius:var(--radius-md); border:1px solid var(--border); background:var(--bg-input); color:var(--text-primary); font-size:0.9rem;">
+          <option value="today">Hari Ini</option>
+          <option value="date">Pilih Tanggal</option>
+          <option value="month">Pilih Bulan</option>
+        </select>
+      </div>
+      <div id="filter-date-group" style="flex:1; min-width:140px; display:none;">
+        <label style="font-size:0.78rem; font-weight:700; color:var(--text-muted); display:block; margin-bottom:6px; text-transform:uppercase;">Tanggal</label>
+        <input type="date" id="report-date-input" style="width:100%; padding:8px 12px; border-radius:var(--radius-md); border:1px solid var(--border); background:var(--bg-input); color:var(--text-primary); font-size:0.9rem;" />
+      </div>
+      <div id="filter-month-group" style="flex:1; min-width:140px; display:none;">
+        <label style="font-size:0.78rem; font-weight:700; color:var(--text-muted); display:block; margin-bottom:6px; text-transform:uppercase;">Bulan</label>
+        <input type="month" id="report-month-input" style="width:100%; padding:8px 12px; border-radius:var(--radius-md); border:1px solid var(--border); background:var(--bg-input); color:var(--text-primary); font-size:0.9rem;" />
+      </div>
+      <button onclick="loadReport()" style="padding:8px 20px; background:var(--accent); color:#fff; border:none; border-radius:var(--radius-md); font-weight:700; cursor:pointer; white-space:nowrap;">🔍 Tampilkan</button>
+    </div>
+
+    <!-- Summary Cards -->
     <div class="dashboard-summary" style="margin-bottom:24px; display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:16px;">
       <div style="background:var(--bg-card); padding:20px; border-radius:var(--radius-lg); border:1px solid var(--border);">
-        <div style="color:var(--text-muted); font-size:0.85rem; font-weight:700; text-transform:uppercase; margin-bottom:8px;">Pendapatan Hari Ini</div>
+        <div style="color:var(--text-muted); font-size:0.85rem; font-weight:700; text-transform:uppercase; margin-bottom:8px;">Total Pendapatan</div>
         <div id="report-revenue" style="font-size:1.8rem; font-weight:900; color:var(--green);">Rp 0</div>
       </div>
       <div style="background:var(--bg-card); padding:20px; border-radius:var(--radius-lg); border:1px solid var(--border);">
@@ -74,7 +96,7 @@
     </div>
     
     <div style="background:var(--bg-card); padding:20px; border-radius:var(--radius-lg); border:1px solid var(--border);">
-      <h4 style="margin-bottom:16px; color:var(--accent);">🏆 Menu Paling Laris Hari Ini</h4>
+      <h4 id="report-popular-title" style="margin-bottom:16px; color:var(--accent);">🏆 Menu Paling Laris</h4>
       <div id="report-popular-items" style="display:flex; flex-direction:column; gap:12px;"></div>
     </div>
   </div>
@@ -141,11 +163,41 @@ function switchTab(tab) {
   }
 }
 
+function toggleReportMode() {
+  const mode = document.getElementById('report-mode').value;
+  document.getElementById('filter-date-group').style.display  = mode === 'date'  ? 'block' : 'none';
+  document.getElementById('filter-month-group').style.display = mode === 'month' ? 'block' : 'none';
+}
+
 async function loadReport() {
   const container = document.getElementById("report-popular-items");
   container.innerHTML = `<div class="spinner"></div>`;
+  
+  const mode  = document.getElementById('report-mode').value;
+  const dateV = document.getElementById('report-date-input').value;
+  const monthV= document.getElementById('report-month-input').value;
+
+  let url, label;
+  if (mode === 'today') {
+    url   = '/api/reports/today';
+    label = 'Hari Ini';
+  } else if (mode === 'date' && dateV) {
+    url   = `/api/reports/date?date=${dateV}`;
+    const d = new Date(dateV + 'T00:00:00');
+    label = d.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+  } else if (mode === 'month' && monthV) {
+    url   = `/api/reports/date?month=${monthV}`;
+    const [y, m] = monthV.split('-');
+    label = new Date(y, m - 1, 1).toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });
+  } else {
+    container.innerHTML = `<div style="color:var(--text-muted); text-align:center; padding:20px;">Pilih tanggal/bulan lalu klik Tampilkan.</div>`;
+    return;
+  }
+
+  document.getElementById('report-popular-title').innerHTML = `🏆 Menu Paling Laris &mdash; ${label}`;
+
   try {
-    const res = await fetch("/api/reports/today");
+    const res = await fetch(url);
     const data = await res.json();
     if (!data.success) throw new Error();
     
@@ -153,12 +205,12 @@ async function loadReport() {
     document.getElementById("report-orders").textContent = data.totalOrders;
     
     if (data.popularItems.length === 0) {
-      container.innerHTML = `<div class="empty-state">Belum ada pesanan selesai hari ini</div>`;
+      container.innerHTML = `<div class="empty-state">Belum ada pesanan selesai pada periode ini</div>`;
     } else {
       container.innerHTML = data.popularItems.map((item, i) => `
-        <div style="display:flex; justify-content:space-between; padding:12px; background:var(--bg-input); border-radius:var(--radius-md);">
-          <span style="font-weight:600;"><span style="color:var(--text-muted); margin-right:8px;">#${i+1}</span> ${escHtml(item.name)}</span>
-          <span style="font-weight:800; color:var(--accent);">${item.qty} x</span>
+        <div style="display:flex; justify-content:space-between; align-items:center; padding:12px; background:var(--bg-input); border-radius:var(--radius-md);">
+          <span style="font-weight:600;"><span style="color:var(--text-muted); margin-right:8px; min-width:24px; display:inline-block;">#${i+1}</span> ${escHtml(item.name)}</span>
+          <span style="font-weight:800; color:var(--accent); background:rgba(239,68,68,0.1); padding:4px 12px; border-radius:999px;">${item.qty}x</span>
         </div>
       `).join("");
     }
