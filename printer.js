@@ -1,7 +1,20 @@
-const { ThermalPrinter, PrinterTypes, CharacterSet } = require("node-thermal-printer");
+// Printer is only available in local/LAN environment, not on Vercel
+let ThermalPrinter, PrinterTypes, CharacterSet;
+try {
+  const thermalPkg = require("node-thermal-printer");
+  ThermalPrinter   = thermalPkg.ThermalPrinter;
+  PrinterTypes     = thermalPkg.PrinterTypes;
+  CharacterSet     = thermalPkg.CharacterSet;
+} catch {
+  // Not installed (Vercel cloud) — printer features disabled
+}
 const config = require("./config");
 
 async function printKitchenOrder(order) {
+  if (!ThermalPrinter) {
+    // Running on Vercel cloud — printer not available, skip silently
+    return false;
+  }
   const printer = new ThermalPrinter({
     type: PrinterTypes.EPSON,
     interface: `tcp://${config.printerIP}:${config.printerPort}`,
