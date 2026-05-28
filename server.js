@@ -18,10 +18,14 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, "public")));
 
 // ─── Clean URL Routes ─────────────────────────────────────────────────────────
-app.get("/order",   (req, res) => res.sendFile(path.join(__dirname, "public/order.html")));
-app.get("/bar",     (req, res) => res.redirect("/cashier"));
-app.get("/cashier", (req, res) => res.sendFile(path.join(__dirname, "public/cashier.html")));
-app.get("/admin",   (req, res) => res.sendFile(path.join(__dirname, "public/admin.html")));
+app.get("/order",     (req, res) => res.sendFile(path.join(__dirname, "public/order.html")));
+app.get("/bar",       (req, res) => res.redirect("/cashier"));
+app.get("/cashier",   (req, res) => res.sendFile(path.join(__dirname, "public/cashier.html")));
+app.get("/admin",     (req, res) => res.sendFile(path.join(__dirname, "public/admin.html")));
+app.get("/stock",     (req, res) => res.sendFile(path.join(__dirname, "public/stock.html")));
+app.get("/sales",     (req, res) => res.sendFile(path.join(__dirname, "public/sales.html")));
+app.get("/dashboard", (req, res) => res.sendFile(path.join(__dirname, "public/dashboard.html")));
+app.get("/qrcodes",   (req, res) => res.sendFile(path.join(__dirname, "public/qrcodes.html")));
 
 // ─── WebSocket ────────────────────────────────────────────────────────────────
 
@@ -339,13 +343,6 @@ app.get("/", (req, res) => {
   res.redirect("/order");
 });
 
-app.get("/sales", (req, res) => {
-  res.sendFile(path.join(__dirname, "public/sales.html"));
-});
-
-app.get("/dashboard", (req, res) => {
-  res.sendFile(path.join(__dirname, "public/dashboard.html"));
-});
 
 // --- Sales Report Sync Endpoints (same pattern as stock) ---
 app.get("/api/sales/:key", async (req, res) => {
