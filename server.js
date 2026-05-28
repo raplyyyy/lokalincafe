@@ -343,6 +343,10 @@ app.get("/sales", (req, res) => {
   res.sendFile(path.join(__dirname, "public/sales.html"));
 });
 
+app.get("/dashboard", (req, res) => {
+  res.sendFile(path.join(__dirname, "public/dashboard.html"));
+});
+
 // --- Sales Report Sync Endpoints (same pattern as stock) ---
 app.get("/api/sales/:key", async (req, res) => {
   try {
