@@ -7,6 +7,7 @@
   <meta name="description" content="Dashboard utama operasional harian Lokalin Café." />
   <link rel="stylesheet" href="/style.css?v=9" />
   <script src="/pin.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     .dash-body { padding: 20px; max-width: 1100px; margin: 0 auto; }
 
@@ -121,6 +122,17 @@
       <div class="stat-value orange" id="stat-critical">—</div>
       <div class="stat-sub">item ≤ 0</div>
       <div class="stat-icon"><svg viewBox="0 0 24 24" stroke="var(--orange)" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
+    </div>
+  </div>
+
+  <!-- Chart Section -->
+  <div class="panel-card" style="margin-bottom:28px;">
+    <div class="dash-section-title">
+      <svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>
+      Tren Penjualan (7 Hari Terakhir)
+    </div>
+    <div style="position:relative; height:280px; width:100%;">
+      <canvas id="salesChart"></canvas>
     </div>
   </div>
 

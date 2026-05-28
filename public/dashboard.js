@@ -167,6 +167,87 @@ async function loadTodaySales() {
     container.innerHTML += `<div style="padding-top:10px;border-top:1px solid var(--border);font-size:0.85rem;font-weight:700;color:var(--text-secondary);">Total terjual: <span style="color:var(--accent)">${totalSold} item</span></div>`;
 }
 
+// ── Chart Penjualan ─────────────────────────────────────────────────────────────
+let salesChartInstance = null;
+
+async function loadChartData() {
+    const [histMak, histMin] = await Promise.all([
+        fetchJSON('/api/sales/history_makanan'),
+        fetchJSON('/api/sales/history_minuman')
+    ]);
+    
+    const arrMak = Array.isArray(histMak) ? histMak : [];
+    const arrMin = Array.isArray(histMin) ? histMin : [];
+    
+    const totalsByDate = {};
+    
+    [...arrMak, ...arrMin].forEach(record => {
+        if (!record || !record.dateKey || !record.entries) return;
+        const totalQty = Object.values(record.entries).reduce((sum, qty) => sum + (qty || 0), 0);
+        if (!totalsByDate[record.dateKey]) totalsByDate[record.dateKey] = 0;
+        totalsByDate[record.dateKey] += totalQty;
+    });
+    
+    const sortedDates = Object.keys(totalsByDate).sort();
+    const last7Dates = sortedDates.slice(-7);
+    
+    const chartLabels = last7Dates.map(d => {
+        const parts = d.split('-'); // 2026-05-29 -> 29/05
+        return `${parts[2]}/${parts[1]}`;
+    });
+    const chartData = last7Dates.map(d => totalsByDate[d]);
+    
+    const ctx = document.getElementById('salesChart');
+    if (!ctx) return;
+    
+    if (salesChartInstance) salesChartInstance.destroy();
+    
+    salesChartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: chartLabels.length ? chartLabels : ['Kosong'],
+            datasets: [{
+                label: 'Item Terjual',
+                data: chartData.length ? chartData : [0],
+                borderColor: '#ff725e',
+                backgroundColor: 'rgba(255, 114, 94, 0.1)',
+                borderWidth: 3,
+                pointBackgroundColor: '#ff725e',
+                pointBorderColor: '#fff',
+                pointRadius: 4,
+                fill: true,
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    backgroundColor: 'rgba(11, 13, 22, 0.95)',
+                    titleFont: { family: 'Outfit', size: 13 },
+                    bodyFont: { family: 'Outfit', size: 15, weight: 'bold' },
+                    padding: 12,
+                    cornerRadius: 12,
+                    displayColors: false
+                }
+            },
+            scales: {
+                y: { 
+                    beginAtZero: true, 
+                    grid: { color: 'rgba(255, 255, 255, 0.05)', drawBorder: false }, 
+                    ticks: { color: 'rgba(255, 255, 255, 0.4)', padding: 10, stepSize: 5 } 
+                },
+                x: { 
+                    grid: { display: false }, 
+                    ticks: { color: 'rgba(255, 255, 255, 0.5)', padding: 10 } 
+                }
+            }
+        }
+    });
+}
+
 // ── Load All ──────────────────────────────────────────────────────────────────
 async function loadAll() {
     const btn = document.getElementById('refreshTopBtn');
@@ -176,7 +257,8 @@ async function loadAll() {
         loadTodayReport(),
         loadActiveOrders(),
         loadStockAlerts(),
-        loadTodaySales()
+        loadTodaySales(),
+        loadChartData()
     ]);
 
     const now = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
