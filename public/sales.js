@@ -58,6 +58,7 @@ const PRODUCTS = {
 let currentTab = 'makanan';
 // Custom products added by user
 let customProducts = { makanan: [], minuman: [] };
+let deletedProducts = { makanan: [], minuman: [] };
 // Today's input: { makanan: { id: qty }, minuman: { id: qty } }
 let todayEntries = { makanan: {}, minuman: {} };
 // History arrays
@@ -69,7 +70,9 @@ let draftTimeout = null;
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function allProducts(tab) {
-    return [...PRODUCTS[tab], ...customProducts[tab]];
+    const combined = [...PRODUCTS[tab], ...customProducts[tab]];
+    const filtered = combined.filter(p => !deletedProducts[tab].includes(p.id));
+    return filtered.sort((a, b) => a.name.localeCompare(b.name));
 }
 
 function todayDateKey() {
@@ -115,7 +118,7 @@ function saveDraftDebounced() {
 async function flushDraft() {
     clearTimeout(draftTimeout);
     draftTimeout = null;
-    const payload = { todayEntries, customProducts };
+    const payload = { todayEntries, customProducts, deletedProducts };
     localStorage.setItem('lokalin_sales_draft', JSON.stringify(payload));
     await cloudPost('draft', payload);
 }
@@ -125,6 +128,7 @@ async function loadDraft() {
     if (cloud && cloud.todayEntries) {
         todayEntries = cloud.todayEntries;
         if (cloud.customProducts) customProducts = cloud.customProducts;
+        if (cloud.deletedProducts) deletedProducts = cloud.deletedProducts;
         return;
     }
     // Fallback local
@@ -134,6 +138,7 @@ async function loadDraft() {
             const d = JSON.parse(local);
             if (d.todayEntries) todayEntries = d.todayEntries;
             if (d.customProducts) customProducts = d.customProducts;
+            if (d.deletedProducts) deletedProducts = d.deletedProducts;
         } catch(e) {}
     }
 }
@@ -230,11 +235,16 @@ function attachListeners() {
     document.querySelectorAll('.del-product-btn').forEach(btn => {
         btn.addEventListener('click', e => {
             const id = parseInt(e.currentTarget.getAttribute('data-id'));
-            // Only allow deleting custom products
             const isCustom = customProducts[currentTab].some(p => p.id === id);
-            if (!isCustom) { alert('Produk default tidak bisa dihapus.'); return; }
+            
             if (!confirm('Hapus produk ini dari daftar?')) return;
-            customProducts[currentTab] = customProducts[currentTab].filter(p => p.id !== id);
+            
+            if (isCustom) {
+                customProducts[currentTab] = customProducts[currentTab].filter(p => p.id !== id);
+            } else {
+                deletedProducts[currentTab].push(id);
+            }
+            
             delete todayEntries[currentTab]?.[id];
             flushDraft();
             renderTable();
