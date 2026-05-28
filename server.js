@@ -339,6 +339,41 @@ app.get("/", (req, res) => {
   res.redirect("/order");
 });
 
+app.get("/sales", (req, res) => {
+  res.sendFile(path.join(__dirname, "public/sales.html"));
+});
+
+// --- Sales Report Sync Endpoints (same pattern as stock) ---
+app.get("/api/sales/:key", async (req, res) => {
+  try {
+    const key = `SYS_SALES_${req.params.key.toUpperCase()}`;
+    const { data, error } = await supabase.from('menu').select('description').eq('id', key).single();
+    if (error && error.code !== 'PGRST116') throw error;
+    if (!data || !data.description) return res.json(null);
+    res.json(JSON.parse(data.description));
+  } catch (err) {
+    res.status(500).json({ error: "Failed to fetch sales data" });
+  }
+});
+
+app.post("/api/sales/:key", async (req, res) => {
+  try {
+    const key = `SYS_SALES_${req.params.key.toUpperCase()}`;
+    const payload = JSON.stringify(req.body);
+    const { error } = await supabase.from('menu').upsert({
+      id: key,
+      name: `System Data: ${key}`,
+      description: payload,
+      price: 0,
+      category: 'System'
+    }, { onConflict: 'id' });
+    if (error) throw error;
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to save sales data" });
+  }
+});
+
 // --- Stock Sync Endpoints ---
 app.get("/api/stock/:key", async (req, res) => {
   try {

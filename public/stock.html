@@ -173,6 +173,7 @@
   <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 24px;">
     <button id="saveDraftBtn" class="btn btn-ghost" style="border:1px solid var(--accent); color:var(--accent);">💾 Simpan Sementara</button>
     <button id="closeDayBtn" class="btn btn-primary">✅ Tutup Hari (Closing)</button>
+    <button id="refreshDataBtn" class="btn btn-ghost" onclick="refreshStockData()" title="Ambil data terbaru dari cloud">🔄 Refresh Data</button>
     <button id="viewHistoryBtn" class="btn btn-ghost">🗓️ Riwayat Rekap</button>
     <button onclick="openExportModal()" class="btn btn-ghost" style="background:#1d6f42; color:#fff; border:none;">📊 Export Excel</button>
   </div>
@@ -281,6 +282,7 @@
   <a href="/cashier" class="sidebar-link">👩‍🍳 Bar & Kasir</a>
   <a href="/admin" class="sidebar-link">⚙️ Admin Menu</a>
   <a href="/stock.html" class="sidebar-link" style="color:var(--accent);">📦 Manajemen Stok</a>
+  <a href="/sales" class="sidebar-link">📊 Laporan Penjualan</a>
 </div>
 
 <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>

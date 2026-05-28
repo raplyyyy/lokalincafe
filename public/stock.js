@@ -149,6 +149,25 @@ function saveData() {
     }, 2000);
 }
 
+// Immediately flush any pending save to localStorage + cloud (bypass debounce)
+async function flushSave() {
+    clearTimeout(syncTimeout);
+    syncTimeout = null;
+
+    // Save both tabs to localStorage
+    localStorage.setItem('lokalin_kitchen_stock_data', JSON.stringify(stockData.kitchen));
+    localStorage.setItem('lokalin_bar_stock_data_v2', JSON.stringify(stockData.bar));
+
+    // Push latest data to cloud immediately
+    try {
+        await fetch('/api/stock/data', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(stockData)
+        });
+    } catch(e) { console.error('flushSave: Cloud sync failed', e); }
+}
+
 function calculateFinalStock(item) {
     return (item.initial || 0) + (item.in || 0) - (item.out || 0) - (item.spoil || 0);
 }
@@ -553,6 +572,9 @@ closeDayBtn.addEventListener('click', async () => {
     closeDayBtn.disabled = true;
     closeDayBtn.innerHTML = "Menyimpan ke Cloud... ☁️";
 
+    // Pastikan semua perubahan input sudah tersimpan ke cloud sebelum tutup hari
+    await flushSave();
+
     const history = await getHistory();
     const todayStr = new Date().toLocaleString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
     
@@ -673,18 +695,61 @@ viewHistoryBtn.addEventListener('click', async () => {
     document.getElementById('historyModal').classList.add('show');
 });
 
+// Refresh Data dari Cloud
+window.refreshStockData = async function() {
+    const btn = document.getElementById('refreshDataBtn');
+    if (!btn) return;
+
+    btn.disabled = true;
+    btn.innerHTML = '⏳ Memuat...';
+
+    try {
+        const res = await fetch('/api/stock/data');
+        if (res.ok) {
+            const cloudData = await res.json();
+            if (cloudData && Array.isArray(cloudData.kitchen) && Array.isArray(cloudData.bar)) {
+                stockData = cloudData;
+                localStorage.setItem('lokalin_kitchen_stock_data', JSON.stringify(stockData.kitchen));
+                localStorage.setItem('lokalin_bar_stock_data_v2', JSON.stringify(stockData.bar));
+                renderTable();
+                btn.innerHTML = '✅ Berhasil!';
+                btn.style.color = 'var(--green)';
+                setTimeout(() => {
+                    btn.innerHTML = '🔄 Refresh Data';
+                    btn.style.color = '';
+                    btn.disabled = false;
+                }, 2000);
+                return;
+            }
+        }
+        throw new Error('Data tidak valid dari cloud');
+    } catch(e) {
+        btn.innerHTML = '❌ Gagal';
+        btn.style.color = '#fc8181';
+        setTimeout(() => {
+            btn.innerHTML = '🔄 Refresh Data';
+            btn.style.color = '';
+            btn.disabled = false;
+        }, 2000);
+    }
+};
+
 // Initialize
 initStockData();
 
 if (saveDraftBtn) {
-    saveDraftBtn.addEventListener('click', () => {
-        saveData();
-        
-        // Show temporary toast feedback
+    saveDraftBtn.addEventListener('click', async () => {
         const originalText = saveDraftBtn.innerHTML;
+        saveDraftBtn.innerHTML = "☁️ Menyimpan...";
+        saveDraftBtn.disabled = true;
+
+        await flushSave();
+
+        // Show temporary toast feedback
         saveDraftBtn.innerHTML = "✅ Tersimpan!";
         saveDraftBtn.style.background = "var(--green)";
         saveDraftBtn.style.color = "#fff";
+        saveDraftBtn.disabled = false;
         
         setTimeout(() => {
             saveDraftBtn.innerHTML = originalText;
