@@ -171,6 +171,23 @@
   </div>
 </div>
 
+<!-- Confirm Modal -->
+<div id="confirmModal" class="modal-overlay">
+  <div class="checkout-panel" style="text-align:left;max-width:400px;opacity:1!important;transform:none!important;">
+    <div class="checkout-header" style="border-bottom:none;padding-bottom:0;">
+      <h2 class="checkout-title" id="confirmTitle" style="font-size:1.25rem;">Konfirmasi</h2>
+      <button class="modal-close" onclick="closeConfirmModal()">✕</button>
+    </div>
+    <div style="padding:16px 20px 24px;">
+      <p id="confirmMessage" style="color:var(--text-secondary);line-height:1.5;margin-bottom:24px;">Pesan konfirmasi...</p>
+      <div style="display:flex;gap:12px;justify-content:flex-end;">
+        <button class="btn btn-ghost" id="confirmCancelBtn" onclick="closeConfirmModal()">Batal</button>
+        <button class="btn btn-primary" id="confirmOkBtn" style="background:var(--accent);">OK</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div id="sidebar-overlay" onclick="toggleSidebar()"></div>
 <div id="sidebar-nav">
   <div class="sidebar-header">

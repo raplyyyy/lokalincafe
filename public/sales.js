@@ -237,17 +237,22 @@ function attachListeners() {
             const id = parseInt(e.currentTarget.getAttribute('data-id'));
             const isCustom = customProducts[currentTab].some(p => p.id === id);
             
-            if (!confirm('Hapus produk ini dari daftar?')) return;
-            
-            if (isCustom) {
-                customProducts[currentTab] = customProducts[currentTab].filter(p => p.id !== id);
-            } else {
-                deletedProducts[currentTab].push(id);
-            }
-            
-            delete todayEntries[currentTab]?.[id];
-            flushDraft();
-            renderTable();
+            showConfirm(
+                'Hapus Produk?',
+                'Yakin ingin menghapus produk ini dari daftar?',
+                'Hapus',
+                '#fc8181',
+                () => {
+                    if (isCustom) {
+                        customProducts[currentTab] = customProducts[currentTab].filter(p => p.id !== id);
+                    } else {
+                        deletedProducts[currentTab].push(id);
+                    }
+                    delete todayEntries[currentTab]?.[id];
+                    flushDraft();
+                    renderTable();
+                }
+            );
         });
     });
 }
@@ -276,42 +281,46 @@ window.addProduct = function() {
 
 // ── Tutup Hari ────────────────────────────────────────────────────────────────
 document.getElementById('closeDayBtn').addEventListener('click', async () => {
-    const confirmClose = confirm(
-        `Tutup Hari untuk SEMUA tab (Makanan & Minuman)?\n\n` +
-        `Data penjualan hari ini akan disimpan ke Riwayat dan input akan dikosongkan.`
+    showConfirm(
+        'Tutup Hari (Closing)',
+        'Tutup Hari untuk SEMUA tab (Makanan & Minuman)?\n\nData penjualan hari ini akan disimpan ke Riwayat dan input akan dikosongkan.',
+        'Tutup Hari',
+        'var(--green)',
+        async () => {
+            const btn = document.getElementById('closeDayBtn');
+            btn.disabled = true;
+            btn.innerHTML = '☁️ Menyimpan...';
+
+            // 1. Flush draft dulu
+            await flushDraft();
+
+            const dateKey = todayDateKey();
+            const dateStr = new Date().toLocaleString('id-ID', {
+                weekday:'long', year:'numeric', month:'long', day:'numeric', hour:'2-digit', minute:'2-digit'
+            });
+
+            // 2. Save history for both tabs
+            for (const tab of ['makanan', 'minuman']) {
+                const hist = tab === 'makanan' ? historyMakanan : historyMinuman;
+                const entries = { ...(todayEntries[tab] || {}) };
+                // Remove zero entries to keep it clean
+                Object.keys(entries).forEach(k => { if (!entries[k]) delete entries[k]; });
+                hist.unshift({ date: dateStr, dateKey, entries });
+                await saveHistory(tab, hist);
+            }
+
+            // 3. Clear today's entries
+            todayEntries = { makanan: {}, minuman: {} };
+            await flushDraft();
+
+            renderTable();
+            btn.disabled = false;
+            btn.innerHTML = '✅ Tutup Hari (Closing)';
+            
+            // Simple success toast/alert could also use showConfirm or just native alert since it's success info
+            setTimeout(() => alert(`Berhasil Tutup Hari! Rekap ${dateKey} telah disinkronkan ke Cloud.`), 100);
+        }
     );
-    if (!confirmClose) return;
-
-    const btn = document.getElementById('closeDayBtn');
-    btn.disabled = true;
-    btn.innerHTML = '☁️ Menyimpan...';
-
-    // 1. Flush draft dulu
-    await flushDraft();
-
-    const dateKey = todayDateKey();
-    const dateStr = new Date().toLocaleString('id-ID', {
-        weekday:'long', year:'numeric', month:'long', day:'numeric', hour:'2-digit', minute:'2-digit'
-    });
-
-    // 2. Save history for both tabs
-    for (const tab of ['makanan', 'minuman']) {
-        const hist = tab === 'makanan' ? historyMakanan : historyMinuman;
-        const entries = { ...(todayEntries[tab] || {}) };
-        // Remove zero entries to keep it clean
-        Object.keys(entries).forEach(k => { if (!entries[k]) delete entries[k]; });
-        hist.unshift({ date: dateStr, dateKey, entries });
-        await saveHistory(tab, hist);
-    }
-
-    // 3. Clear today's entries
-    todayEntries = { makanan: {}, minuman: {} };
-    await flushDraft();
-
-    renderTable();
-    btn.disabled = false;
-    btn.innerHTML = '✅ Tutup Hari (Closing)';
-    alert(`Berhasil Tutup Hari! Rekap ${dateKey} telah disinkronkan ke Cloud.`);
 });
 
 // ── Refresh ───────────────────────────────────────────────────────────────────
@@ -375,12 +384,18 @@ document.getElementById('viewHistoryBtn').addEventListener('click', () => {
 
 // ── Clear History ─────────────────────────────────────────────────────────────
 window.clearSalesHistory = async function() {
-    if (!confirm(`Hapus SELURUH riwayat penjualan ${currentTab.toUpperCase()}? Tidak bisa dikembalikan.`)) return;
-    if (currentTab === 'makanan') historyMakanan = [];
-    else historyMinuman = [];
-    await saveHistory(currentTab, []);
-    document.getElementById('historyModal').classList.remove('show');
-    alert('Riwayat berhasil dihapus.');
+    showConfirm(
+        'Hapus Riwayat?',
+        `Hapus SELURUH riwayat penjualan ${currentTab.toUpperCase()}? Data yang dihapus tidak bisa dikembalikan.`,
+        'Hapus Semua',
+        '#fc8181',
+        async () => {
+            if (currentTab === 'makanan') historyMakanan = [];
+            else historyMinuman = [];
+            await saveHistory(currentTab, []);
+            document.getElementById('historyModal').classList.remove('show');
+        }
+    );
 };
 
 // ── Export Excel ──────────────────────────────────────────────────────────────
@@ -444,6 +459,33 @@ window.processExportExcel = function() {
     XLSX.writeFile(wb, `${title}.xlsx`);
     document.getElementById('exportModal').classList.remove('show');
 };
+
+// ── Custom Confirm Modal ──────────────────────────────────────────────────────
+let confirmCallback = null;
+
+function showConfirm(title, message, btnText, btnColor, callback) {
+    document.getElementById('confirmTitle').textContent = title || 'Konfirmasi';
+    document.getElementById('confirmMessage').innerText = message;
+    
+    const okBtn = document.getElementById('confirmOkBtn');
+    okBtn.textContent = btnText || 'Ya';
+    okBtn.style.background = btnColor || 'var(--accent)';
+    okBtn.style.color = '#fff';
+    okBtn.style.border = 'none';
+    
+    confirmCallback = callback;
+    document.getElementById('confirmModal').classList.add('show');
+}
+
+window.closeConfirmModal = function() {
+    document.getElementById('confirmModal').classList.remove('show');
+    confirmCallback = null;
+};
+
+document.getElementById('confirmOkBtn').addEventListener('click', () => {
+    if (confirmCallback) confirmCallback();
+    closeConfirmModal();
+});
 
 // ── Init ──────────────────────────────────────────────────────────────────────
 async function initSalesData() {
