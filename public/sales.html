@@ -171,6 +171,30 @@
   </div>
 </div>
 
+<!-- Weekly Reminder Modal -->
+<div id="weeklyReminderModal" class="modal-overlay">
+  <div class="checkout-panel" style="text-align:left;max-width:420px;opacity:1!important;transform:none!important;">
+    <div class="checkout-header" style="border-bottom:none;padding-bottom:0;">
+      <h2 class="checkout-title" style="font-size:1.2rem;display:flex;align-items:center;gap:10px;">
+        <span style="font-size:1.6rem;">📥</span> Reminder Download Rekap
+      </h2>
+      <button class="modal-close" onclick="closeWeeklyReminder()">✕</button>
+    </div>
+    <div style="padding:16px 20px 24px;">
+      <div style="background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.3);border-radius:12px;padding:16px;margin-bottom:20px;">
+        <p style="color:var(--orange);font-weight:700;font-size:0.9rem;margin-bottom:6px;">⚠️ Riwayat sudah <span id="weeklyReminderDays">7</span> hari!</p>
+        <p style="color:var(--text-secondary);font-size:0.85rem;line-height:1.6;">Untuk menjaga data tetap bersih dan menghindari penumpukan, disarankan untuk mengunduh rekap riwayat penjualan Anda secara berkala (minimal per minggu).</p>
+      </div>
+      <div style="display:flex;gap:12px;justify-content:flex-end;">
+        <button class="btn btn-ghost" onclick="closeWeeklyReminder()" style="font-size:0.85rem;">Ingatkan Nanti</button>
+        <button class="btn btn-primary" onclick="weeklyReminderDownload()" style="background:#1d6f42;font-size:0.85rem;">
+          📊 Download Rekap Sekarang
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- Confirm Modal -->
 <div id="confirmModal" class="modal-overlay">
   <div class="checkout-panel" style="text-align:left;max-width:400px;opacity:1!important;transform:none!important;">

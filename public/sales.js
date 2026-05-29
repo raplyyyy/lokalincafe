@@ -414,6 +414,24 @@ window.clearSalesHistory = async function() {
     );
 };
 
+// ── Weekly Download Reminder ──────────────────────────────────────────────────
+function showWeeklyReminder(totalDays) {
+    document.getElementById('weeklyReminderDays').textContent = totalDays;
+    document.getElementById('weeklyReminderModal').classList.add('show');
+}
+
+window.closeWeeklyReminder = function() {
+    document.getElementById('weeklyReminderModal').classList.remove('show');
+};
+
+window.weeklyReminderDownload = function() {
+    closeWeeklyReminder();
+    // Langsung buka Export Modal dengan mode "semua"
+    openExportModal();
+    document.getElementById('export-type').value = 'semua';
+    toggleExportInputs();
+};
+
 // ── Export Excel ──────────────────────────────────────────────────────────────
 window.openExportModal = function() {
     document.getElementById('exportModal').classList.add('show');
