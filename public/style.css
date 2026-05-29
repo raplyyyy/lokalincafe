@@ -989,7 +989,6 @@ input[type=number] { -moz-appearance: textfield; }
 
 @media (max-width: 900px) {
   .menu-grid { grid-template-columns: 1fr; padding: 0 14px 22px; }
-  .bar-header, .cashier-header, .admin-header { flex-direction: column; align-items: stretch; }
   .dashboard-summary { padding: 16px 16px 12px; }
   .order-card { grid-template-columns: 1fr; }
   .admin-body { padding: 16px; }
@@ -997,10 +996,7 @@ input[type=number] { -moz-appearance: textfield; }
   .form-group { min-width: 0; }
   .menu-item-row { flex-direction: column; align-items: stretch; }
   .menu-item-row .row-price,
-  .menu-item-row .del-btn {
-    width: 100%;
-    text-align: left;
-  }
+  .menu-item-row .del-btn { width: 100%; text-align: left; }
   .menu-item-row .del-btn { margin-top: 12px; }
   .item-control { width: 100%; align-items: flex-end; }
 }
@@ -1015,10 +1011,85 @@ input[type=number] { -moz-appearance: textfield; }
   #cart-bar { width: calc(100% - 32px); }
 }
 
+/* ── Mobile Overhaul (≤640px) ─────────────────────────────────────────────── */
+@media (max-width: 640px) {
+
+  /* Header — tetap 1 baris, tidak stack vertikal */
+  .bar-header,
+  .cashier-header,
+  .admin-header {
+    flex-direction: row !important;
+    align-items: center !important;
+    padding: 12px 14px;
+    gap: 8px;
+  }
+
+  .admin-header-left,
+  .cashier-header-left,
+  .bar-header .left {
+    flex: 1;
+    min-width: 0;
+    gap: 8px;
+  }
+
+  .page-title { font-size: 0.95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .page-icon  { font-size: 1.2rem; flex-shrink: 0; }
+  .menu-toggle-btn { flex-shrink: 0; }
+
+  /* Body padding lebih kecil */
+  .admin-body { padding: 12px; }
+
+  /* Tombol-tombol aksi — 2 kolom grid otomatis */
+  .action-buttons-row,
+  [style*="display: flex"][style*="flex-wrap: wrap"][style*="gap: 10px"] {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px !important;
+  }
+
+  /* Tombol aksi ukuran lebih compact */
+  .action-buttons-row .btn,
+  [style*="display: flex"][style*="flex-wrap: wrap"] .btn {
+    font-size: 0.8rem !important;
+    padding: 9px 8px !important;
+    justify-content: center;
+  }
+
+  /* Tab nav full width */
+  .tab-nav { width: 100%; }
+  .tab-btn { flex: 1; justify-content: center; font-size: 0.85rem; padding: 10px 8px; }
+
+  /* Form lebih compact */
+  .add-form { padding: 12px 14px; }
+  .form-actions { flex-wrap: wrap; gap: 8px; }
+  .form-actions .btn { flex: 1; min-width: 100px; justify-content: center; }
+
+  /* Sidebar full-screen di mobile */
+  #sidebar-nav { width: 100% !important; }
+
+  /* Checkout panel di mobile */
+  .checkout-panel { padding: 18px 16px 24px; border-radius: var(--radius-xl) var(--radius-xl) 0 0; }
+  .checkout-title { font-size: 1.1rem; }
+
+  /* Modal panels */
+  .modal-overlay > .checkout-panel {
+    max-width: 100% !important;
+    margin: auto 0 0 0 !important;
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0 !important;
+  }
+
+  /* Cart bar */
+  #cart-bar { width: 100% !important; left: 0 !important; right: 0 !important; border-radius: var(--radius-xl) var(--radius-xl) 0 0; }
+
+  /* WS status badge hide label on small screens */
+  #ws-label { display: none; }
+
+  /* Refresh btn text hide */
+  .refresh-btn span { display: none; }
+}
 
 .btn-success { background: var(--green); color: var(--bg-base); border: none; font-weight: 800; border-radius: var(--radius-lg); cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.4); }
 .btn-success:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(16, 185, 129, 0.6); }
-
 
 .category-pills { display: flex; flex-wrap: wrap; gap: 8px; padding: 12px 20px 12px; }
 .category-pills::-webkit-scrollbar { display: none; }
