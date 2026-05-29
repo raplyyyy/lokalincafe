@@ -1088,7 +1088,6 @@ input[type=number] { -moz-appearance: textfield; }
   }
   #place-order-btn { padding: 10px 14px !important; font-size: 0.85rem !important; min-width: 110px !important; }
   .cart-total { font-size: 1.1rem !important; }
-  .cart-tax { display: none !important; }
   body { padding-bottom: 90px !important; }
   /* WS status badge hide label on small screens */
   #ws-label { display: none; }

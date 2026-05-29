@@ -329,9 +329,9 @@ function updateCartBar() {
   const tax = Math.round(subtotal * 0.11);
   const totalPrice = subtotal + tax;
 
-  document.getElementById("cart-count").textContent = `${totalQty} item`;
+  document.getElementById("cart-count").textContent = `${totalQty} item${totalQty !== 1 ? 's' : ''}`;
   const taxEl = document.getElementById("cart-tax");
-  if(taxEl) taxEl.textContent = `+ Pajak 11%: ${formatRupiah(tax)}`;
+  if(taxEl) taxEl.textContent = `+ Tax 11%: ${formatRupiah(tax)}`;
   document.getElementById("cart-total").textContent = formatRupiah(totalPrice);
 
   const btn = document.getElementById("place-order-btn");
@@ -370,7 +370,7 @@ async function placeOrder() {
 
   const btn = document.getElementById("place-order-btn");
   btn.disabled = true;
-  btn.textContent = "⏳ Mengirim...";
+  btn.textContent = "⏳ Sending...";
 
   try {
     const res = await fetch("/api/order", {
@@ -392,9 +392,9 @@ async function placeOrder() {
     cart = {};
     updateCartBar();
   } catch (err) {
-    alert("Gagal mengirim pesanan. Silakan coba lagi.");
+    alert("Failed to send order. Please try again.");
     btn.disabled = false;
-    btn.textContent = "🛒 Pesan Sekarang";
+    btn.textContent = "🛒 Order Now";
   }
 }
 
@@ -461,7 +461,7 @@ function resetApp() {
   document.querySelectorAll(".menu-item").forEach(el => el.classList.remove("in-cart"));
   const btn = document.getElementById("place-order-btn");
   btn.disabled = true;
-  btn.textContent = "🛒 Pesan Sekarang";
+  btn.textContent = "🛒 Order Now";
   updateCartBar();
 }
 
