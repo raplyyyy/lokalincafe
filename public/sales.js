@@ -64,6 +64,8 @@ let todayEntries = { makanan: {}, minuman: {} };
 // History arrays
 let historyMakanan = [];
 let historyMinuman = [];
+// Price map: { 'NASI GORENG LOKALIN': 48000, ... } — diambil dari /api/menu
+let priceMap = {};
 
 // Auto-save debounce
 let draftTimeout = null;
@@ -118,7 +120,26 @@ function saveDraftDebounced() {
 async function flushDraft() {
     clearTimeout(draftTimeout);
     draftTimeout = null;
-    const payload = { todayEntries, customProducts, deletedProducts };
+
+    // Hitung omzet hari ini dari qty × harga (menggunakan priceMap dari /api/menu)
+    let todayOmzet = 0;
+    for (const tab of ['makanan', 'minuman']) {
+        const products = allProducts(tab);
+        const entries = todayEntries[tab] || {};
+        for (const [id, qty] of Object.entries(entries)) {
+            if (!qty) continue;
+            const product = products.find(p => String(p.id) === String(id));
+            if (!product) continue;
+            // Cari harga dari priceMap menggunakan nama produk (case-insensitive)
+            const priceKey = Object.keys(priceMap).find(k =>
+                k.toLowerCase() === product.name.toLowerCase()
+            );
+            const price = priceKey ? priceMap[priceKey] : 0;
+            todayOmzet += qty * price;
+        }
+    }
+
+    const payload = { todayEntries, customProducts, deletedProducts, todayOmzet };
     localStorage.setItem('lokalin_sales_draft', JSON.stringify(payload));
     await cloudPost('draft', payload);
 }
@@ -487,9 +508,29 @@ document.getElementById('confirmOkBtn').addEventListener('click', () => {
     closeConfirmModal();
 });
 
+// ── Load Harga dari Menu API ──────────────────────────────────────────────────
+async function loadPriceMap() {
+    try {
+        const res = await fetch('/api/menu');
+        if (!res.ok) return;
+        const data = await res.json();
+        priceMap = {};
+        // Normalisasi: nama dari Supabase mungkin Title Case, di sales UPPERCASE
+        [...(data.food || []), ...(data.drinks || [])].forEach(item => {
+            if (item.name && item.price) {
+                priceMap[item.name.toUpperCase()] = item.price;
+                priceMap[item.name] = item.price; // simpan aslinya juga
+            }
+        });
+    } catch(e) {
+        console.warn('Gagal load price map:', e);
+    }
+}
+
 // ── Init ──────────────────────────────────────────────────────────────────────
 async function initSalesData() {
     await Promise.all([
+        loadPriceMap(),
         loadDraft(),
         loadHistory('makanan'),
         loadHistory('minuman')

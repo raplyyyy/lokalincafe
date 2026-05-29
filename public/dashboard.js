@@ -31,13 +31,23 @@ async function fetchJSON(url) {
 
 // ── Load Today's Report ───────────────────────────────────────────────────────
 async function loadTodayReport() {
+    // Ambil total order dari API (dari paid orders Supabase)
     const data = await fetchJSON('/api/reports/today');
     if (data && data.success) {
-        setEl('stat-orders',  data.totalOrders ?? 0);
-        setEl('stat-revenue', fmtRp(data.totalRevenue ?? 0));
+        setEl('stat-orders', data.totalOrders ?? 0);
     } else {
-        setEl('stat-orders',  '—');
-        setEl('stat-revenue', '—');
+        setEl('stat-orders', '—');
+    }
+
+    // Ambil omzet dari Sales Draft (input laporan penjualan manual)
+    const draft = await fetchJSON('/api/sales/draft');
+    if (draft && typeof draft.todayOmzet === 'number' && draft.todayOmzet > 0) {
+        setEl('stat-revenue', fmtRp(draft.todayOmzet));
+    } else if (data && data.success && data.totalRevenue > 0) {
+        // Fallback ke omzet dari paid orders jika sales draft belum ada data
+        setEl('stat-revenue', fmtRp(data.totalRevenue));
+    } else {
+        setEl('stat-revenue', 'Rp 0');
     }
 }
 
