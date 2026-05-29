@@ -192,18 +192,12 @@ async function saveHistory(tab, arr) {
 // ── Render ────────────────────────────────────────────────────────────────────
 function renderTable() {
     const products = allProducts(currentTab);
-    const history  = currentHistory();
-    // Show last 5 closed days (oldest→newest left→right)
-    const recentDays = history.slice(0, 5).reverse();
 
     // ── HEADER ──
     const thead = document.getElementById('salesHead');
     let headHTML = '<tr>';
     headHTML += '<th class="s-no">NO</th>';
     headHTML += '<th class="s-name">NAMA PRODUK</th>';
-    recentDays.forEach(rec => {
-        headHTML += `<th style="min-width:64px;text-align:center;">${formatDateKey(rec.dateKey)}</th>`;
-    });
     headHTML += '<th class="th-today" style="min-width:90px;text-align:center;">HARI INI</th>';
     headHTML += '<th style="min-width:40px;"></th>';
     headHTML += '</tr>';
@@ -212,23 +206,17 @@ function renderTable() {
     // ── BODY ──
     const tbody = document.getElementById('salesBody');
     if (products.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="${4 + recentDays.length}" style="text-align:center;padding:24px;color:var(--text-muted);">Belum ada produk.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;padding:24px;color:var(--text-muted);">Belum ada produk.</td></tr>`;
         return;
     }
 
     tbody.innerHTML = products.map((p, idx) => {
         const todayQty = todayEntries[currentTab]?.[p.id] || 0;
 
-        let dateCells = recentDays.map(rec => {
-            const qty = rec.entries?.[p.id] || 0;
-            return `<td class="date-cell${qty === 0 ? ' zero' : ''}" style="text-align:center;">${qty === 0 ? '—' : qty}</td>`;
-        }).join('');
-
         return `
         <tr>
           <td class="s-no" style="color:var(--text-muted);font-size:0.85rem;">${idx + 1}</td>
           <td class="s-name">${p.name}</td>
-          ${dateCells}
           <td class="td-today">
             <input type="number" class="qty-input" data-id="${p.id}" value="${todayQty > 0 ? todayQty : ''}" placeholder="0" min="0" />
           </td>
@@ -240,6 +228,7 @@ function renderTable() {
 
     attachListeners();
 }
+
 
 function attachListeners() {
     document.querySelectorAll('.qty-input').forEach(input => {
@@ -324,7 +313,6 @@ document.getElementById('closeDayBtn').addEventListener('click', async () => {
             for (const tab of ['makanan', 'minuman']) {
                 const hist = tab === 'makanan' ? historyMakanan : historyMinuman;
                 const entries = { ...(todayEntries[tab] || {}) };
-                // Remove zero entries to keep it clean
                 Object.keys(entries).forEach(k => { if (!entries[k]) delete entries[k]; });
                 hist.unshift({ date: dateStr, dateKey, entries });
                 await saveHistory(tab, hist);
@@ -337,9 +325,16 @@ document.getElementById('closeDayBtn').addEventListener('click', async () => {
             renderTable();
             btn.disabled = false;
             btn.innerHTML = '✅ Tutup Hari (Closing)';
-            
-            // Simple success toast/alert could also use showConfirm or just native alert since it's success info
-            setTimeout(() => alert(`Berhasil Tutup Hari! Rekap ${dateKey} telah disinkronkan ke Cloud.`), 100);
+
+            // 4. Cek apakah riwayat sudah >= 7 hari, jika iya tampilkan reminder
+            const totalHistory = Math.max(historyMakanan.length, historyMinuman.length);
+            if (totalHistory >= 7) {
+                setTimeout(() => {
+                    showWeeklyReminder(totalHistory);
+                }, 300);
+            } else {
+                setTimeout(() => alert(`✅ Berhasil Tutup Hari!\nRekap ${dateKey} telah disinkronkan ke Cloud.`), 100);
+            }
         }
     );
 });
@@ -507,6 +502,41 @@ document.getElementById('confirmOkBtn').addEventListener('click', () => {
     if (confirmCallback) confirmCallback();
     closeConfirmModal();
 });
+
+// ── Weekly Reminder Modal ─────────────────────────────────────────────────────
+function showWeeklyReminder(totalDays) {
+    const weeks = Math.floor(totalDays / 7);
+    const overlay = document.createElement('div');
+    overlay.className = 'modal-overlay show';
+    overlay.id = 'weeklyReminderOverlay';
+    overlay.innerHTML = `
+        <div class="checkout-panel" style="max-width:440px;opacity:1!important;transform:none!important;text-align:left;">
+            <div style="padding:28px 24px 0;">
+                <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+                    <div style="width:48px;height:48px;border-radius:14px;background:linear-gradient(135deg,#f59e0b,#d97706);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                    </div>
+                    <div>
+                        <div style="font-family:'Outfit',sans-serif;font-size:1.1rem;font-weight:800;color:var(--text-primary);">Rekap Mingguan Tersedia!</div>
+                        <div style="font-size:0.8rem;color:var(--text-muted);">Riwayat sudah mencapai <strong>${totalDays} hari</strong></div>
+                    </div>
+                </div>
+                <p style="color:var(--text-secondary);font-size:0.9rem;line-height:1.6;margin-bottom:20px;">
+                    Anda sudah memiliki riwayat penjualan selama <strong style="color:var(--orange)">${totalDays} hari (±${weeks} minggu)</strong>. 
+                    Disarankan untuk men-download rekap Excel terlebih dahulu agar data tetap aman dan tidak menumpuk di sistem.
+                </p>
+                <div style="background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.25);border-radius:var(--radius-md);padding:12px 14px;margin-bottom:24px;font-size:0.82rem;color:var(--orange);">
+                    💡 <strong>Tips:</strong> Download rekap mingguan setiap Minggu malam sebelum mulai minggu baru agar data laporan selalu bersih dan terorganisir.
+                </div>
+            </div>
+            <div style="display:flex;gap:10px;padding:0 24px 24px;">
+                <button class="btn btn-ghost" style="flex:1;" onclick="document.getElementById('weeklyReminderOverlay').remove()">Nanti Saja</button>
+                <button class="btn btn-primary" style="flex:2;background:#1d6f42;" onclick="document.getElementById('weeklyReminderOverlay').remove(); openExportModal();">📊 Download Rekap Sekarang</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(overlay);
+}
 
 // ── Load Harga dari Menu API ──────────────────────────────────────────────────
 async function loadPriceMap() {
