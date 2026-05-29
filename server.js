@@ -64,9 +64,11 @@ app.get("/api/menu", async (req, res) => {
     if (error) throw error;
     
     // Group into { food: [], drinks: [] } for frontend
+    // Filter out all system/internal entries (SYS_STOCK_*, SYS_SALES_*, category: System)
     const menu = { food: [], drinks: [] };
     for (const item of data) {
-      if (item.id.startsWith('SYS_STOCK_')) continue;
+      if (item.id.startsWith('SYS_')) continue;
+      if (item.category === 'System') continue;
       const cat = item.category ? item.category.toLowerCase() : "";
       if (cat.includes('coffee') || cat.includes('kopi') || cat.includes('drink') || cat.includes('minuman') || cat.includes('tea') || cat.includes('teh') || cat.includes('juice') || cat.includes('jus') || cat.includes('blend')) {
         menu.drinks.push(item);
