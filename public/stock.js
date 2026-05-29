@@ -264,6 +264,101 @@ function renderTable() {
 
     attachInputListeners();
     checkAllAlerts();
+    renderCards(); // Mobile card view
+}
+
+function renderCards() {
+    const cardsEl = document.getElementById('stockCards');
+    if (!cardsEl) return;
+    const currentData = stockData[currentTab];
+
+    if (currentData.length === 0) {
+        cardsEl.innerHTML = `<div style="text-align:center;padding:24px;color:var(--text-muted);">Belum ada item.</div>`;
+        return;
+    }
+
+    cardsEl.innerHTML = currentData.map((item, index) => {
+        const expectedBar = calculateExpectedBar(item);
+        const finalStock = currentTab === 'bar' ? expectedBar : calculateFinalStock(item);
+        let stockClass = finalStock < 0 ? 'stock-danger' : finalStock === 0 ? 'stock-warning' : 'stock-normal';
+        const barBalanceValue = item.spoil === '' || item.spoil === null || item.spoil === undefined ? '' : item.spoil;
+
+        const spoilField = currentTab === 'bar'
+            ? `<div class="stock-card-field">
+                <label>Sisa Fisik</label>
+                <input type="number" class="spoil-input" data-index="${index}" value="${barBalanceValue}" placeholder="${expectedBar}" min="0" style="border-color:var(--accent);" />
+               </div>`
+            : `<div class="stock-card-field">
+                <label>Spoil</label>
+                <input type="number" class="spoil-input" data-index="${index}" value="${item.spoil}" min="0" />
+               </div>`;
+
+        return `
+        <div class="stock-card">
+          <div class="stock-card-header">
+            <div class="stock-card-name">${item.name}</div>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span class="stock-akhir-badge ${stockClass}">${finalStock}</span>
+              <button class="icon-btn-del delete-btn" data-index="${index}" title="Hapus">🗑</button>
+            </div>
+          </div>
+          <div class="stock-card-grid">
+            <div class="stock-card-field">
+              <label>Awal</label>
+              <input type="number" class="initial-input" data-index="${index}" value="${item.initial}" min="0" />
+            </div>
+            <div class="stock-card-field">
+              <label>IN</label>
+              <input type="number" class="in-input" data-index="${index}" value="${item.in}" min="0" />
+            </div>
+            <div class="stock-card-field">
+              <label>OUT</label>
+              <input type="number" class="out-input" data-index="${index}" value="${item.out}" min="0" />
+            </div>
+            ${spoilField}
+          </div>
+        </div>`;
+    }).join('');
+
+    // Reattach listeners for card inputs too
+    cardsEl.querySelectorAll('.initial-input').forEach(input => {
+        input.addEventListener('change', e => {
+            const idx = parseInt(e.target.dataset.index);
+            stockData[currentTab][idx].initial = parseFloat(e.target.value) || 0;
+            saveData(); renderCards();
+        });
+    });
+    cardsEl.querySelectorAll('.in-input').forEach(input => {
+        input.addEventListener('change', e => {
+            const idx = parseInt(e.target.dataset.index);
+            stockData[currentTab][idx].in = parseFloat(e.target.value) || 0;
+            saveData(); renderCards();
+        });
+    });
+    cardsEl.querySelectorAll('.out-input').forEach(input => {
+        input.addEventListener('change', e => {
+            const idx = parseInt(e.target.dataset.index);
+            stockData[currentTab][idx].out = parseFloat(e.target.value) || 0;
+            saveData(); renderCards();
+        });
+    });
+    cardsEl.querySelectorAll('.spoil-input').forEach(input => {
+        input.addEventListener('change', e => {
+            const idx = parseInt(e.target.dataset.index);
+            const val = e.target.value === '' ? '' : parseFloat(e.target.value) || 0;
+            stockData[currentTab][idx].spoil = val;
+            saveData(); renderCards();
+        });
+    });
+    cardsEl.querySelectorAll('.delete-btn').forEach(btn => {
+        btn.addEventListener('click', e => {
+            const idx = parseInt(e.currentTarget.dataset.index);
+            if (confirm(`Hapus "${stockData[currentTab][idx].name}"?`)) {
+                stockData[currentTab].splice(idx, 1);
+                saveData(); renderTable();
+            }
+        });
+    });
 }
 
 function updateRowUI(index) {
