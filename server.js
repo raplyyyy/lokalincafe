@@ -202,11 +202,19 @@ app.patch("/api/menu/:category/:id/stock", async (req, res) => {
 // POST /api/menu/item → add item
 app.post("/api/menu/item", async (req, res) => {
   try {
-    const { category, item } = req.body; // frontend category: 'food' | 'drinks'
+    const { category, subcategory, item } = req.body; // frontend category: 'food' | 'drinks', subcategory: e.g. 'Main Food', 'Snack', 'Coffee'
     if (!["food", "drinks"].includes(category) || !item?.name || !item?.price) {
       return res.status(400).json({ error: "Missing properties" });
     }
     
+    // Determine the Supabase category value
+    let supabaseCategory;
+    if (subcategory) {
+      supabaseCategory = subcategory;
+    } else {
+      supabaseCategory = category === 'food' ? 'Main Food' : 'Coffee';
+    }
+
     // Get highest ID for the prefix
     const prefix = category === "food" ? "f" : "d";
     const { data: existing } = await supabase.from('menu').select('id').like('id', `${prefix}%`);
@@ -220,7 +228,7 @@ app.post("/api/menu/item", async (req, res) => {
       name: item.name,
       description: item.description,
       price: item.price,
-      category: item.category || (category === 'food' ? 'Main Food' : 'Coffee'),
+      category: supabaseCategory,
       image: item.image,
       inStock: true,
       stock: item.stock || 100,
@@ -232,6 +240,21 @@ app.post("/api/menu/item", async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Failed to add menu item" });
+  }
+});
+
+// PATCH /api/menu/item/:id/category → update an item's category (subcategory)
+app.patch("/api/menu/item/:id/category", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { category } = req.body;
+    if (!category) return res.status(400).json({ error: "category is required" });
+    const { data, error } = await supabase.from('menu').update({ category }).eq('id', id).select().single();
+    if (error || !data) return res.status(404).json({ error: "Item not found" });
+    res.json({ success: true, item: data });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to update category" });
   }
 });
 

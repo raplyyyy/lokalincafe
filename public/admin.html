@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Admin Menu — Lokalin</title>
-  <meta name="description" content="Kelola menu makanan dan minuman." />
+  <meta name="description" content="Manage food and drink menus." />
   <link rel="stylesheet" href="/style.css?v=13" />
   <script src="/pin.js"></script>
 </head>
@@ -24,34 +24,43 @@
   <!-- Tabs -->
   <div class="tabs-wrapper">
     <div class="tab-nav">
-      <button class="tab-btn active" onclick="switchTab('food')">🍽️ Makanan</button>
-      <button class="tab-btn" onclick="switchTab('drinks')">🍹 Minuman</button>
-      <button class="tab-btn" onclick="switchTab('report')">📈 Laporan</button>
+      <button class="tab-btn active" onclick="switchTab('food')">🍽️ Food</button>
+      <button class="tab-btn" onclick="switchTab('drinks')">🍹 Drinks</button>
+      <button class="tab-btn" onclick="switchTab('report')">📈 Report</button>
     </div>
   </div>
 
   <!-- Add Form -->
   <div class="add-form">
-    <h3 id="add-title">+ Tambah Makanan</h3>
+    <h3 id="add-title">+ Add Menu</h3>
     <div class="form-row">
       <div class="form-group">
-        <label>Nama Item</label>
-        <input type="text" id="inp-name" placeholder="cth: Nasi Goreng" />
+        <label>Item Name</label>
+        <input type="text" id="inp-name" placeholder="e.g., Fried Rice" />
       </div>
       <div class="form-group">
-        <label>Harga (Rp)</label>
+        <label>Price (Rp)</label>
         <input type="number" id="inp-price" placeholder="25000" min="0" />
       </div>
     </div>
     <div class="form-row">
       <div class="form-group">
-        <label>Deskripsi</label>
-        <input type="text" id="inp-desc" placeholder="Deskripsi singkat…" />
+        <label>Category / Section</label>
+        <select id="inp-category" style="width:100%;padding:10px 12px;background:var(--bg-input);border:1px solid var(--border);border-radius:var(--radius-md);color:var(--text-primary);font-family:inherit;font-size:0.9rem;">
+          <option value="Main Food">🍛 Main Food</option>
+          <option value="Snack">🍟 Snack</option>
+          <option value="Pasta">🍝 Pasta</option>
+          <option value="Dessert">🍮 Dessert</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Description</label>
+        <input type="text" id="inp-desc" placeholder="Short description…" />
       </div>
     </div>
     <div class="form-actions">
-      <button class="btn btn-primary" onclick="addItem()">+ Tambah</button>
-      <button class="btn btn-ghost" onclick="clearForm()">Bersihkan</button>
+      <button class="btn btn-primary" onclick="addItem()">+ Add</button>
+      <button class="btn btn-ghost" onclick="clearForm()">Clear</button>
     </div>
   </div>
 
@@ -67,36 +76,36 @@
       <div style="flex:1; min-width:140px;">
         <label style="font-size:0.78rem; font-weight:700; color:var(--text-muted); display:block; margin-bottom:6px; text-transform:uppercase;">Mode</label>
         <select id="report-mode" onchange="toggleReportMode()" style="width:100%; padding:8px 12px; border-radius:var(--radius-md); border:1px solid var(--border); background:var(--bg-input); color:var(--text-primary); font-size:0.9rem;">
-          <option value="today">Hari Ini</option>
-          <option value="date">Pilih Tanggal</option>
-          <option value="month">Pilih Bulan</option>
+          <option value="today">Today</option>
+          <option value="date">Select Date</option>
+          <option value="month">Select Month</option>
         </select>
       </div>
       <div id="filter-date-group" style="flex:1; min-width:140px; display:none;">
-        <label style="font-size:0.78rem; font-weight:700; color:var(--text-muted); display:block; margin-bottom:6px; text-transform:uppercase;">Tanggal</label>
+        <label style="font-size:0.78rem; font-weight:700; color:var(--text-muted); display:block; margin-bottom:6px; text-transform:uppercase;">Date</label>
         <input type="date" id="report-date-input" style="width:100%; padding:8px 12px; border-radius:var(--radius-md); border:1px solid var(--border); background:var(--bg-input); color:var(--text-primary); font-size:0.9rem;" />
       </div>
       <div id="filter-month-group" style="flex:1; min-width:140px; display:none;">
-        <label style="font-size:0.78rem; font-weight:700; color:var(--text-muted); display:block; margin-bottom:6px; text-transform:uppercase;">Bulan</label>
+        <label style="font-size:0.78rem; font-weight:700; color:var(--text-muted); display:block; margin-bottom:6px; text-transform:uppercase;">Month</label>
         <input type="month" id="report-month-input" style="width:100%; padding:8px 12px; border-radius:var(--radius-md); border:1px solid var(--border); background:var(--bg-input); color:var(--text-primary); font-size:0.9rem;" />
       </div>
-      <button onclick="loadReport()" style="padding:8px 20px; background:var(--accent); color:#fff; border:none; border-radius:var(--radius-md); font-weight:700; cursor:pointer; white-space:nowrap;">🔍 Tampilkan</button>
+      <button onclick="loadReport()" style="padding:8px 20px; background:var(--accent); color:#fff; border:none; border-radius:var(--radius-md); font-weight:700; cursor:pointer; white-space:nowrap;">🔍 Show</button>
     </div>
 
     <!-- Summary Cards -->
     <div class="dashboard-summary" style="margin-bottom:24px; display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:16px;">
       <div style="background:var(--bg-card); padding:20px; border-radius:var(--radius-lg); border:1px solid var(--border);">
-        <div style="color:var(--text-muted); font-size:0.85rem; font-weight:700; text-transform:uppercase; margin-bottom:8px;">Total Pendapatan</div>
+        <div style="color:var(--text-muted); font-size:0.85rem; font-weight:700; text-transform:uppercase; margin-bottom:8px;">Total Revenue</div>
         <div id="report-revenue" style="font-size:1.8rem; font-weight:900; color:var(--green);">Rp 0</div>
       </div>
       <div style="background:var(--bg-card); padding:20px; border-radius:var(--radius-lg); border:1px solid var(--border);">
-        <div style="color:var(--text-muted); font-size:0.85rem; font-weight:700; text-transform:uppercase; margin-bottom:8px;">Total Pesanan Selesai</div>
+        <div style="color:var(--text-muted); font-size:0.85rem; font-weight:700; text-transform:uppercase; margin-bottom:8px;">Total Completed Orders</div>
         <div id="report-orders" style="font-size:1.8rem; font-weight:900; color:var(--text-primary);">0</div>
       </div>
     </div>
     
     <div style="background:var(--bg-card); padding:20px; border-radius:var(--radius-lg); border:1px solid var(--border);">
-      <h4 id="report-popular-title" style="margin-bottom:16px; color:var(--accent);">🏆 Menu Paling Laris</h4>
+      <h4 id="report-popular-title" style="margin-bottom:16px; color:var(--accent);">🏆 Best Selling Menu</h4>
       <div id="report-popular-items" style="display:flex; flex-direction:column; gap:12px;"></div>
     </div>
   </div>
@@ -107,7 +116,7 @@
 <div id="sidebar-nav">
   <div class="sidebar-header">
     <div class="restaurant-name">🍽️ Lokalin</div>
-    <button class="close-btn" onclick="toggleSidebar()" aria-label="Tutup">
+    <button class="close-btn" onclick="toggleSidebar()" aria-label="Close">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
     </button>
   </div>
@@ -117,11 +126,11 @@
   </a>
   <a href="/order?table=5" class="sidebar-link">
     <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
-    Pesan (Customer)
+    Order (Customer)
   </a>
   <a href="/cashier" class="sidebar-link">
     <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
-    Bar &amp; Kasir
+    Bar &amp; Cashier
   </a>
   <a href="/admin" class="sidebar-link" style="color:#fff;">
     <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
@@ -129,11 +138,11 @@
   </a>
   <a href="/stock" class="sidebar-link">
     <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
-    Manajemen Stok
+    Stock Management
   </a>
   <a href="/sales" class="sidebar-link">
     <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
-    Laporan Penjualan
+    Sales Report
   </a>
 </div>
 
@@ -146,7 +155,10 @@ const ICONS = {
   drinks: ["🧋","🍊","🥑","🥭","💧","☕","🥛","🍵","🧃","🫖","🍹","🥤"]
 };
 
-window.addEventListener("DOMContentLoaded", loadMenu);
+window.addEventListener("DOMContentLoaded", async () => {
+  updateCategoryDropdown(); // Init dropdown for default 'food' tab
+  await loadMenu();
+});
 
 async function loadMenu() {
   try {
@@ -154,8 +166,31 @@ async function loadMenu() {
     menu = await res.json();
     renderList();
   } catch {
-    document.getElementById("menu-list-container").innerHTML = "<p style='color:var(--red)'>Gagal memuat menu</p>";
+    document.getElementById("menu-list-container").innerHTML = "<p style='color:var(--red)'>Failed to load menu</p>";
   }
+}
+
+const FOOD_CATEGORIES = [
+  { value: 'Main Food', label: '🍛 Main Food' },
+  { value: 'Snack',     label: '🍟 Snack' },
+  { value: 'Pasta',     label: '🍝 Pasta' },
+  { value: 'Dessert',   label: '🍮 Dessert' },
+];
+const DRINK_CATEGORIES = [
+  { value: 'Coffee',    label: '☕ Coffee' },
+  { value: 'Tea',       label: '🍵 Tea' },
+  { value: 'Juice',     label: '🍊 Juice' },
+  { value: 'Squash',    label: '🥤 Squash' },
+  { value: 'Blend',     label: '🧋 Blend' },
+  { value: 'Water',     label: '💧 Water' },
+  { value: 'Other Drink', label: '🥛 Other Drink' },
+];
+
+function updateCategoryDropdown() {
+  const select = document.getElementById('inp-category');
+  if (!select) return;
+  const cats = currentTab === 'food' ? FOOD_CATEGORIES : DRINK_CATEGORIES;
+  select.innerHTML = cats.map(c => `<option value="${c.value}">${c.label}</option>`).join('');
 }
 
 function switchTab(tab) {
@@ -181,7 +216,8 @@ function switchTab(tab) {
     addForm.style.display = "block";
     menuList.style.display = "block";
     reportContainer.style.display = "none";
-    document.getElementById("add-title").textContent = tab === "food" ? "+ Tambah Makanan" : "+ Tambah Minuman";
+    document.getElementById("add-title").textContent = tab === "food" ? "+ Add Food" : "+ Add Drinks";
+    updateCategoryDropdown();
     renderList();
   }
 }
@@ -203,21 +239,21 @@ async function loadReport() {
   let url, label;
   if (mode === 'today') {
     url   = '/api/reports/today';
-    label = 'Hari Ini';
+    label = 'Today';
   } else if (mode === 'date' && dateV) {
     url   = `/api/reports/date?date=${dateV}`;
     const d = new Date(dateV + 'T00:00:00');
-    label = d.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+    label = d.toLocaleDateString('en-US', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
   } else if (mode === 'month' && monthV) {
     url   = `/api/reports/date?month=${monthV}`;
     const [y, m] = monthV.split('-');
-    label = new Date(y, m - 1, 1).toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });
+    label = new Date(y, m - 1, 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
   } else {
-    container.innerHTML = `<div style="color:var(--text-muted); text-align:center; padding:20px;">Pilih tanggal/bulan lalu klik Tampilkan.</div>`;
+    container.innerHTML = `<div style="color:var(--text-muted); text-align:center; padding:20px;">Select a date/month then click Show.</div>`;
     return;
   }
 
-  document.getElementById('report-popular-title').innerHTML = `🏆 Menu Paling Laris &mdash; ${label}`;
+  document.getElementById('report-popular-title').innerHTML = `🏆 Most Popular Menu &mdash; ${label}`;
 
   try {
     const res = await fetch(url);
@@ -228,7 +264,7 @@ async function loadReport() {
     document.getElementById("report-orders").textContent = data.totalOrders;
     
     if (data.popularItems.length === 0) {
-      container.innerHTML = `<div class="empty-state">Belum ada pesanan selesai pada periode ini</div>`;
+      container.innerHTML = `<div class="empty-state">No completed orders in this period</div>`;
     } else {
       container.innerHTML = data.popularItems.map((item, i) => `
         <div style="display:flex; justify-content:space-between; align-items:center; padding:12px; background:var(--bg-input); border-radius:var(--radius-md);">
@@ -238,7 +274,7 @@ async function loadReport() {
       `).join("");
     }
   } catch (err) {
-    container.innerHTML = `<div style="color:var(--red);">Gagal memuat laporan</div>`;
+    container.innerHTML = `<div style="color:var(--red);">Failed to load report</div>`;
   }
 }
 
@@ -247,7 +283,7 @@ function renderList() {
   const icons = ICONS[currentTab];
   const container = document.getElementById("menu-list-container");
   if (!items.length) {
-    container.innerHTML = `<div class="empty-state"><div class="empty-icon">📭</div><h3>Belum ada item</h3></div>`;
+    container.innerHTML = `<div class="empty-state"><div class="empty-icon">📭</div><h3>No items yet</h3></div>`;
     return;
   }
   container.innerHTML = items.map((item, i) => `
@@ -255,41 +291,46 @@ function renderList() {
       <div class="row-icon">${icons[i % icons.length]}</div>
       <div class="row-info">
         <div class="row-name">${escHtml(item.name)}</div>
-        <div class="row-desc">${escHtml(item.description || "")}</div>
+        <div class="row-desc">
+          ${item.category ? `<span style="background:rgba(99,179,237,0.12);color:var(--accent);border:1px solid rgba(99,179,237,0.25);border-radius:4px;padding:1px 7px;font-size:0.72rem;font-weight:700;margin-right:6px;">${escHtml(item.category)}</span>` : ''}
+          ${escHtml(item.description || "")}
+        </div>
       </div>
       <div class="row-price">Rp ${Number(item.price).toLocaleString("id-ID")}</div>
-      <button class="del-btn" onclick="deleteItem('${item.id}')">🗑 Hapus</button>
+      <button onclick="changeItemCategory('${item.id}', '${escHtml(item.category || '')}')" title="Move to another category" style="background:rgba(99,179,237,0.1);border:1px solid rgba(99,179,237,0.25);color:var(--accent);padding:6px 10px;border-radius:var(--radius-md);cursor:pointer;font-size:0.78rem;font-weight:700;white-space:nowrap;transition:all 0.2s;margin-right:6px;" onmouseover="this.style.background='rgba(99,179,237,0.22)'" onmouseout="this.style.background='rgba(99,179,237,0.1)'">📁 Move</button>
+      <button class="del-btn" onclick="deleteItem('${item.id}')">🗑 Delete</button>
     </div>`).join("");
 }
 
 async function addItem() {
-  const name  = document.getElementById("inp-name").value.trim();
-  const price = parseInt(document.getElementById("inp-price").value);
-  const desc  = document.getElementById("inp-desc").value.trim();
+  const name     = document.getElementById("inp-name").value.trim();
+  const price    = parseInt(document.getElementById("inp-price").value);
+  const desc     = document.getElementById("inp-desc").value.trim();
+  const subcategory = document.getElementById("inp-category")?.value || '';
 
-  if (!name || !price || price < 0) { alert("Nama dan harga wajib diisi!"); return; }
+  if (!name || !price || price < 0) { alert("Name and price are required!"); return; }
 
   try {
     const res = await fetch("/api/menu/item", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ category: currentTab, item: { name, price, description: desc } }),
+      body: JSON.stringify({ category: currentTab, subcategory, item: { name, price, description: desc } }),
     });
     const data = await res.json();
     if (!data.success) throw new Error();
     clearForm();
     await loadMenu();
-  } catch { alert("Gagal menambah item."); }
+  } catch { alert("Failed to add item."); }
 }
 
 async function deleteItem(id) {
-  if (!confirm("Hapus item ini?")) return;
+  if (!confirm("Delete this item?")) return;
   try {
     const res = await fetch(`/api/menu/item/${currentTab}/${id}`, { method: "DELETE" });
     const data = await res.json();
     if (!data.success) throw new Error();
     await loadMenu();
-  } catch { alert("Gagal menghapus item."); }
+  } catch { alert("Failed to delete item."); }
 }
 
 function clearForm() {
@@ -297,6 +338,46 @@ function clearForm() {
   document.getElementById("inp-price").value = "";
   document.getElementById("inp-desc").value = "";
 }
+
+async function changeItemCategory(itemId, currentCat) {
+  const cats = currentTab === 'food' ? FOOD_CATEGORIES : DRINK_CATEGORIES;
+  const options = cats.map((c, i) => `${i + 1}. ${c.label} (${c.value})`).join('\n');
+  const input = prompt(
+    `Move "${itemId}" to which category?\nCurrent: ${currentCat || '(none)'}\n\n${options}\n\nType the number or exact category name:`,
+    currentCat
+  );
+  if (!input || input.trim() === '' || input.trim() === currentCat) return;
+
+  // Accept number or direct name
+  let newCat = input.trim();
+  const numChoice = parseInt(newCat);
+  if (!isNaN(numChoice) && numChoice >= 1 && numChoice <= cats.length) {
+    newCat = cats[numChoice - 1].value;
+  }
+  // Validate
+  const valid = cats.map(c => c.value.toLowerCase());
+  if (!valid.includes(newCat.toLowerCase())) {
+    // Try partial match
+    const match = cats.find(c => c.value.toLowerCase().includes(newCat.toLowerCase()));
+    if (!match) { alert(`Invalid category: "${newCat}"`); return; }
+    newCat = match.value;
+  } else {
+    newCat = cats.find(c => c.value.toLowerCase() === newCat.toLowerCase()).value;
+  }
+
+  try {
+    const res = await fetch(`/api/menu/item/${itemId}/category`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ category: newCat })
+    });
+    const data = await res.json();
+    if (!data.success) throw new Error();
+    await loadMenu();
+    alert(`✅ Moved to "${newCat}" successfully!`);
+  } catch { alert('Failed to update category.'); }
+}
+
 function toggleSidebar() {
   document.getElementById('sidebar-nav').classList.toggle('show');
   document.getElementById('sidebar-overlay').classList.toggle('show');
