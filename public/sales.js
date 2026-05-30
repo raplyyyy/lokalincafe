@@ -197,8 +197,8 @@ function renderTable() {
     const thead = document.getElementById('salesHead');
     let headHTML = '<tr>';
     headHTML += '<th class="s-no">NO</th>';
-    headHTML += '<th class="s-name">NAMA PRODUK</th>';
-    headHTML += '<th class="th-today" style="min-width:90px;text-align:center;">HARI INI</th>';
+    headHTML += '<th class="s-name">PRODUCT NAME</th>';
+    headHTML += '<th class="th-today" style="min-width:90px;text-align:center;">TODAY</th>';
     headHTML += '<th style="min-width:40px;"></th>';
     headHTML += '</tr>';
     thead.innerHTML = headHTML;
@@ -206,7 +206,7 @@ function renderTable() {
     // ── BODY ──
     const tbody = document.getElementById('salesBody');
     if (products.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;padding:24px;color:var(--text-muted);">Belum ada produk.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;padding:24px;color:var(--text-muted);">No products yet.</td></tr>`;
         return;
     }
 
@@ -221,7 +221,7 @@ function renderTable() {
             <input type="number" class="qty-input" data-id="${p.id}" value="${todayQty > 0 ? todayQty : ''}" placeholder="0" min="0" />
           </td>
           <td style="text-align:center;">
-            <button class="icon-btn-del del-product-btn" data-id="${p.id}" title="Hapus produk">🗑</button>
+            <button class="icon-btn-del del-product-btn" data-id="${p.id}" title="Delete product">🗑</button>
           </td>
         </tr>`;
     }).join('');
@@ -248,9 +248,9 @@ function attachListeners() {
             const isCustom = customProducts[currentTab].some(p => p.id === id);
             
             showConfirm(
-                'Hapus Produk?',
-                'Yakin ingin menghapus produk ini dari daftar?',
-                'Hapus',
+                'Delete Product?',
+                'Are you sure you want to delete this product from the list?',
+                'Delete',
                 '#fc8181',
                 () => {
                     if (isCustom) {
@@ -274,14 +274,14 @@ window.switchTab = function(tab) {
         btn.classList.toggle('active', (i === 0 && tab === 'makanan') || (i === 1 && tab === 'minuman'));
     });
     document.getElementById('add-title').textContent = tab === 'makanan'
-        ? '+ Tambah Produk Makanan' : '+ Tambah Produk Minuman';
+        ? '+ Add Food Product' : '+ Add Drink Product';
     renderTable();
 };
 
 // ── Add Product ───────────────────────────────────────────────────────────────
 window.addProduct = function() {
     const name = document.getElementById('inp-name').value.trim().toUpperCase();
-    if (!name) { alert('Nama produk tidak boleh kosong.'); return; }
+    if (!name) { alert('Product name cannot be empty.'); return; }
     const newId = Date.now();
     customProducts[currentTab].push({ id: newId, name });
     document.getElementById('inp-name').value = '';
@@ -292,16 +292,16 @@ window.addProduct = function() {
 // ── Tutup Hari ────────────────────────────────────────────────────────────────
 document.getElementById('closeDayBtn').addEventListener('click', async () => {
     showConfirm(
-        'Tutup Hari (Closing)',
-        'Tutup Hari untuk SEMUA tab (Makanan & Minuman)?\n\nData penjualan hari ini akan disimpan ke Riwayat dan input akan dikosongkan.',
-        'Tutup Hari',
+        'Close Day (Closing)',
+        `Close Day for ${currentTab === 'makanan' ? 'FOOD 🍔' : 'DRINKS 🍹'} tab only?\n\nToday\'s sales data will be saved to History and input will be cleared.\n\nNote: Only the currently active tab will be closed.`,
+        'Close Day',
         'var(--green)',
         async () => {
             const btn = document.getElementById('closeDayBtn');
             btn.disabled = true;
-            btn.innerHTML = '☁️ Menyimpan...';
+            btn.innerHTML = '☁️ Saving...';
 
-            // 1. Flush draft dulu
+            // 1. Flush draft first
             await flushDraft();
 
             const dateKey = todayDateKey();
@@ -309,31 +309,30 @@ document.getElementById('closeDayBtn').addEventListener('click', async () => {
                 weekday:'long', year:'numeric', month:'long', day:'numeric', hour:'2-digit', minute:'2-digit'
             });
 
-            // 2. Save history for both tabs
-            for (const tab of ['makanan', 'minuman']) {
-                const hist = tab === 'makanan' ? historyMakanan : historyMinuman;
-                const entries = { ...(todayEntries[tab] || {}) };
-                Object.keys(entries).forEach(k => { if (!entries[k]) delete entries[k]; });
-                hist.unshift({ date: dateStr, dateKey, entries });
-                await saveHistory(tab, hist);
-            }
+            // 2. Save history ONLY for the currently active tab
+            const tab = currentTab;
+            const hist = tab === 'makanan' ? historyMakanan : historyMinuman;
+            const entries = { ...(todayEntries[tab] || {}) };
+            Object.keys(entries).forEach(k => { if (!entries[k]) delete entries[k]; });
+            hist.unshift({ date: dateStr, dateKey, entries });
+            await saveHistory(tab, hist);
 
-            // 3. Clear today's entries
-            todayEntries = { makanan: {}, minuman: {} };
+            // 3. Clear today's entries for this tab only
+            todayEntries[tab] = {};
             await flushDraft();
 
             renderTable();
             btn.disabled = false;
-            btn.innerHTML = '✅ Tutup Hari (Closing)';
+            btn.innerHTML = '✅ Close Day (Closing)';
 
-            // 4. Cek apakah riwayat sudah >= 7 hari, jika iya tampilkan reminder
-            const totalHistory = Math.max(historyMakanan.length, historyMinuman.length);
-            if (totalHistory >= 7) {
+            // 4. Check if history >= 7 days, show reminder if so
+            const tabHistory = tab === 'makanan' ? historyMakanan : historyMinuman;
+            if (tabHistory.length >= 7) {
                 setTimeout(() => {
-                    showWeeklyReminder(totalHistory);
+                    showWeeklyReminder(tabHistory.length);
                 }, 300);
             } else {
-                setTimeout(() => alert(`✅ Berhasil Tutup Hari!\nRekap ${dateKey} telah disinkronkan ke Cloud.`), 100);
+                setTimeout(() => alert(`✅ Close Day Successful!\nRecap for ${tab === 'makanan' ? 'FOOD' : 'DRINKS'} on ${dateKey} has been synced to Cloud.`), 100);
             }
         }
     );
@@ -343,15 +342,15 @@ document.getElementById('closeDayBtn').addEventListener('click', async () => {
 window.refreshSalesData = async function() {
     const btn = document.getElementById('refreshBtn');
     btn.disabled = true;
-    btn.innerHTML = '⏳ Memuat...';
+    btn.innerHTML = '⏳ Loading...';
     try {
         await Promise.all([loadDraft(), loadHistory('makanan'), loadHistory('minuman')]);
         renderTable();
-        btn.innerHTML = '✅ Berhasil!';
+        btn.innerHTML = '✅ Success!';
         btn.style.color = 'var(--green)';
         setTimeout(() => { btn.innerHTML = '🔄 Refresh Data'; btn.style.color = ''; btn.disabled = false; }, 2000);
     } catch(e) {
-        btn.innerHTML = '❌ Gagal';
+        btn.innerHTML = '❌ Failed';
         btn.style.color = '#fc8181';
         setTimeout(() => { btn.innerHTML = '🔄 Refresh Data'; btn.style.color = ''; btn.disabled = false; }, 2000);
     }
@@ -361,13 +360,13 @@ window.refreshSalesData = async function() {
 document.getElementById('viewHistoryBtn').addEventListener('click', () => {
     const history = currentHistory();
     document.getElementById('historyTitle').textContent =
-        `🗓️ Riwayat Penjualan ${currentTab === 'makanan' ? 'Makanan' : 'Minuman'}`;
+        `🗓️ Sales History ${currentTab === 'makanan' ? 'Food' : 'Drinks'}`;
 
     const container = document.getElementById('historyContainer');
     if (history.length === 0) {
-        container.innerHTML = `<div style="text-align:center;padding:30px;color:var(--text-muted);">Belum ada riwayat rekap. Klik "Tutup Hari" untuk menyimpan.</div>`;
+        container.innerHTML = `<div style="text-align:center;padding:30px;color:var(--text-muted);">No recap history yet. Click "Close Day" to save.</div>`;
     } else {
-        container.innerHTML = history.map(rec => {
+        container.innerHTML = history.map((rec, i) => {
             const products = allProducts(currentTab);
             const rows = products
                 .filter(p => rec.entries?.[p.id] > 0)
@@ -379,12 +378,15 @@ document.getElementById('viewHistoryBtn').addEventListener('click', () => {
             const total = Object.values(rec.entries || {}).reduce((s, v) => s + (v || 0), 0);
             return `
             <div class="history-card">
-                <div class="history-date">📅 ${rec.date}</div>
+                <div class="history-date" style="display:flex;justify-content:space-between;align-items:center;">
+                    <span>📅 ${rec.date}</span>
+                    <button onclick="deleteHistorySalesEntry(${i})" title="Delete this entry" style="background:rgba(229,62,62,0.15);border:1px solid rgba(229,62,62,0.35);color:#fc8181;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:0.75rem;font-weight:700;transition:all 0.2s;" onmouseover="this.style.background='rgba(229,62,62,0.3)'" onmouseout="this.style.background='rgba(229,62,62,0.15)'">🗑️ Delete</button>
+                </div>
                 <div style="overflow-x:auto;">
                     <table class="history-table">
-                        <thead><tr><th>Nama Produk</th><th style="text-align:center;">Terjual</th></tr></thead>
+                        <thead><tr><th>Product Name</th><th style="text-align:center;">Sold</th></tr></thead>
                         <tbody>
-                            ${rows || `<tr><td colspan="2" style="color:var(--text-muted);text-align:center;padding:12px;">Tidak ada penjualan hari ini.</td></tr>`}
+                            ${rows || `<tr><td colspan="2" style="color:var(--text-muted);text-align:center;padding:12px;">No sales today.</td></tr>`}
                             <tr style="border-top:2px solid var(--border-strong);">
                                 <td style="font-weight:700;color:var(--text-primary);">TOTAL</td>
                                 <td style="text-align:center;font-weight:800;color:var(--green);">${total}</td>
@@ -401,15 +403,36 @@ document.getElementById('viewHistoryBtn').addEventListener('click', () => {
 // ── Clear History ─────────────────────────────────────────────────────────────
 window.clearSalesHistory = async function() {
     showConfirm(
-        'Hapus Riwayat?',
-        `Hapus SELURUH riwayat penjualan ${currentTab.toUpperCase()}? Data yang dihapus tidak bisa dikembalikan.`,
-        'Hapus Semua',
+        'Delete History?',
+        `Delete ALL sales history for ${currentTab === 'makanan' ? 'FOOD' : 'DRINKS'}? Deleted data cannot be recovered.`,
+        'Delete All',
         '#fc8181',
         async () => {
             if (currentTab === 'makanan') historyMakanan = [];
             else historyMinuman = [];
             await saveHistory(currentTab, []);
             document.getElementById('historyModal').classList.remove('show');
+        }
+    );
+};
+
+// Delete a single daily recap entry by index
+window.deleteHistorySalesEntry = async function(index) {
+    const hist = currentTab === 'makanan' ? historyMakanan : historyMinuman;
+    if (index < 0 || index >= hist.length) return;
+    const entryDate = hist[index].date;
+    showConfirm(
+        'Delete Entry?',
+        `Delete recap entry "${entryDate}" for ${currentTab === 'makanan' ? 'FOOD' : 'DRINKS'}?\nThis action cannot be undone.`,
+        'Delete',
+        '#fc8181',
+        async () => {
+            hist.splice(index, 1);
+            if (currentTab === 'makanan') historyMakanan = hist;
+            else historyMinuman = hist;
+            await saveHistory(currentTab, hist);
+            // Re-render history modal
+            document.getElementById('viewHistoryBtn').click();
         }
     );
 };
@@ -449,47 +472,47 @@ window.processExportExcel = function() {
     const history = currentHistory();
     const products = allProducts(currentTab);
     let rows = [];
-    let title = `Laporan Penjualan ${currentTab.toUpperCase()}`;
+    let title = `Sales Report ${currentTab.toUpperCase()}`;
 
     const buildRows = (rec) => {
         products.forEach(p => {
             const qty = rec.entries?.[p.id] || 0;
             if (qty > 0) {
-                rows.push({ 'Tanggal': rec.date, 'Nama Produk': p.name, 'Terjual': qty });
+                rows.push({ 'Date': rec.date, 'Product Name': p.name, 'Sold': qty });
             }
         });
     };
 
     if (type === 'hari_ini') {
-        title += ' - Hari Ini (Belum Ditutup)';
+        title += ' - Today (Not Closed)';
         products.forEach(p => {
             const qty = todayEntries[currentTab]?.[p.id] || 0;
-            rows.push({ 'Nama Produk': p.name, 'Terjual': qty });
+            rows.push({ 'Product Name': p.name, 'Sold': qty });
         });
     } else if (type === 'harian') {
         const dateInput = document.getElementById('export-date').value;
-        if (!dateInput) return alert('Pilih tanggal terlebih dahulu!');
+        if (!dateInput) return alert('Please select a date first!');
         const found = history.filter(h => h.dateKey === dateInput);
-        if (!found.length) return alert('Tidak ada data rekap untuk tanggal tersebut.');
+        if (!found.length) return alert('No recap data for that date.');
         found.forEach(buildRows);
         title += ` - ${dateInput}`;
     } else if (type === 'bulanan') {
         const monthInput = document.getElementById('export-month').value;
-        if (!monthInput) return alert('Pilih bulan terlebih dahulu!');
+        if (!monthInput) return alert('Please select a month first!');
         const found = history.filter(h => h.dateKey && h.dateKey.startsWith(monthInput));
-        if (!found.length) return alert('Tidak ada data rekap untuk bulan tersebut.');
+        if (!found.length) return alert('No recap data for that month.');
         found.forEach(buildRows);
         title += ` - ${monthInput}`;
     } else {
-        if (!history.length) return alert('Belum ada riwayat rekap.');
+        if (!history.length) return alert('No recap history yet.');
         history.forEach(buildRows);
-        title += ' - Semua Riwayat';
+        title += ' - All History';
     }
 
-    if (!rows.length) return alert('Data kosong.');
+    if (!rows.length) return alert('Data is empty.');
     const ws = XLSX.utils.json_to_sheet(rows);
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Laporan');
+    XLSX.utils.book_append_sheet(wb, ws, 'Report');
     XLSX.writeFile(wb, `${title}.xlsx`);
     document.getElementById('exportModal').classList.remove('show');
 };
@@ -498,11 +521,11 @@ window.processExportExcel = function() {
 let confirmCallback = null;
 
 function showConfirm(title, message, btnText, btnColor, callback) {
-    document.getElementById('confirmTitle').textContent = title || 'Konfirmasi';
+    document.getElementById('confirmTitle').textContent = title || 'Confirmation';
     document.getElementById('confirmMessage').innerText = message;
     
     const okBtn = document.getElementById('confirmOkBtn');
-    okBtn.textContent = btnText || 'Ya';
+    okBtn.textContent = btnText || 'Yes';
     okBtn.style.background = btnColor || 'var(--accent)';
     okBtn.style.color = '#fff';
     okBtn.style.border = 'none';
@@ -535,21 +558,21 @@ function showWeeklyReminder(totalDays) {
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
                     </div>
                     <div>
-                        <div style="font-family:'Outfit',sans-serif;font-size:1.1rem;font-weight:800;color:var(--text-primary);">Rekap Mingguan Tersedia!</div>
-                        <div style="font-size:0.8rem;color:var(--text-muted);">Riwayat sudah mencapai <strong>${totalDays} hari</strong></div>
+                        <div style="font-family:'Outfit',sans-serif;font-size:1.1rem;font-weight:800;color:var(--text-primary);">Weekly Recap Available!</div>
+                        <div style="font-size:0.8rem;color:var(--text-muted);">History has reached <strong>${totalDays} days</strong></div>
                     </div>
                 </div>
                 <p style="color:var(--text-secondary);font-size:0.9rem;line-height:1.6;margin-bottom:20px;">
-                    Anda sudah memiliki riwayat penjualan selama <strong style="color:var(--orange)">${totalDays} hari (±${weeks} minggu)</strong>. 
-                    Disarankan untuk men-download rekap Excel terlebih dahulu agar data tetap aman dan tidak menumpuk di sistem.
+                    You have a sales history for <strong style="color:var(--orange)">${totalDays} days (±${weeks} weeks)</strong>. 
+                    It is recommended to download the Excel recap first so that data is safe and does not pile up in the system.
                 </p>
                 <div style="background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.25);border-radius:var(--radius-md);padding:12px 14px;margin-bottom:24px;font-size:0.82rem;color:var(--orange);">
-                    💡 <strong>Tips:</strong> Download rekap mingguan setiap Minggu malam sebelum mulai minggu baru agar data laporan selalu bersih dan terorganisir.
+                    💡 <strong>Tip:</strong> Download weekly recap every Sunday night before starting a new week so that report data is always clean and organized.
                 </div>
             </div>
             <div style="display:flex;gap:10px;padding:0 24px 24px;">
-                <button class="btn btn-ghost" style="flex:1;" onclick="document.getElementById('weeklyReminderOverlay').remove()">Nanti Saja</button>
-                <button class="btn btn-primary" style="flex:2;background:#1d6f42;" onclick="document.getElementById('weeklyReminderOverlay').remove(); openExportModal();">📊 Download Rekap Sekarang</button>
+                <button class="btn btn-ghost" style="flex:1;" onclick="document.getElementById('weeklyReminderOverlay').remove()">Later</button>
+                <button class="btn btn-primary" style="flex:2;background:#1d6f42;" onclick="document.getElementById('weeklyReminderOverlay').remove(); openExportModal();">📊 Download Recap Now</button>
             </div>
         </div>
     `;
@@ -571,7 +594,7 @@ async function loadPriceMap() {
             }
         });
     } catch(e) {
-        console.warn('Gagal load price map:', e);
+        console.warn('Failed to load price map:', e);
     }
 }
 

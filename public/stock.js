@@ -143,8 +143,8 @@ function saveData() {
                 body: JSON.stringify(stockData)
             });
             document.getElementById('add-title').innerHTML = currentTab === 'kitchen' 
-                ? '🍳 Tambah Menu (Tersinkronisasi ☁️)' 
-                : '🍹 Tambah Menu (Tersinkronisasi ☁️)';
+                ? '🍳 Add Menu (Synced ☁️)' 
+                : '🍹 Add Menu (Synced ☁️)';
         } catch(e) { console.error('Cloud sync failed'); }
     }, 2000);
 }
@@ -185,8 +185,8 @@ window.switchStockTab = function(tab) {
     
     // Update title
     document.getElementById('add-title').innerHTML = tab === 'kitchen' 
-        ? '🍳 Tambah Menu ke Stok Kitchen' 
-        : '🍹 Tambah Menu ke Stok Bar';
+        ? '🍳 Add Menu to Kitchen Stock' 
+        : '🍹 Add Menu to Bar Stock';
         
     renderTable();
 }
@@ -197,24 +197,24 @@ function renderTable() {
     if (currentTab === 'bar') {
         thead.innerHTML = `
         <tr>
-          <th>Nama Menu</th>
-          <th>Awal</th>
+          <th>Menu Name</th>
+          <th>Initial</th>
           <th>IN</th>
           <th>OUT</th>
-          <th>Sisa (Balance)</th>
-          <th class="text-center">Est. Akhir</th>
-          <th class="text-center">Aksi</th>
+          <th>Balance</th>
+          <th class="text-center">Est. Final</th>
+          <th class="text-center">Action</th>
         </tr>`;
     } else {
         thead.innerHTML = `
         <tr>
-          <th>Nama Menu</th>
-          <th>Awal</th>
+          <th>Menu Name</th>
+          <th>Initial</th>
           <th>IN</th>
           <th>OUT</th>
           <th>Spoil</th>
-          <th class="text-center">Akhir</th>
-          <th class="text-center">Aksi</th>
+          <th class="text-center">Final</th>
+          <th class="text-center">Action</th>
         </tr>`;
     }
 
@@ -222,7 +222,7 @@ function renderTable() {
     const currentData = stockData[currentTab];
     
     if (currentData.length === 0) {
-        tableBody.innerHTML = `<tr><td colspan="7" class="text-center" style="color:var(--text-muted); padding:24px;">Belum ada item di stok ${currentTab}.</td></tr>`;
+        tableBody.innerHTML = `<tr><td colspan="7" class="text-center" style="color:var(--text-muted); padding:24px;">No items in ${currentTab} stock yet.</td></tr>`;
     }
 
     currentData.forEach((item, index) => {
@@ -244,9 +244,9 @@ function renderTable() {
                 <td><input type="number" class="initial-input" data-index="${index}" value="${item.initial}" min="0"></td>
                 <td><input type="number" class="in-input" data-index="${index}" value="${item.in}" min="0"></td>
                 <td><input type="number" class="out-input" data-index="${index}" value="${item.out}" min="0"></td>
-                <td><input type="number" class="spoil-input" data-index="${index}" value="${barBalanceValue}" placeholder="${expectedBar}" min="0" style="background:var(--bg-card); border-color:var(--accent);" title="Sisa Fisik Aktual. Kosongkan jika sama dengan Est Akhir."></td>
-                <td class="text-center"><span class="stock-akhir-badge ${stockClass}" title="Estimasi Akhir (Awal + IN - OUT)">${expectedBar}</span></td>
-                <td class="text-center"><button class="icon-btn-del delete-btn" data-index="${index}" title="Hapus Menu">🗑</button></td>
+                <td><input type="number" class="spoil-input" data-index="${index}" value="${barBalanceValue}" placeholder="${expectedBar}" min="0" style="background:var(--bg-card); border-color:var(--accent);" title="Actual Physical Balance. Leave empty if same as Est. Final."></td>
+                <td class="text-center"><span class="stock-akhir-badge ${stockClass}" title="Estimated Final (Initial + IN - OUT)">${expectedBar}</span></td>
+                <td class="text-center"><button class="icon-btn-del delete-btn" data-index="${index}" title="Delete Menu">🗑</button></td>
             `;
         } else {
             tr.innerHTML = `
@@ -256,7 +256,7 @@ function renderTable() {
                 <td><input type="number" class="out-input" data-index="${index}" value="${item.out}" min="0"></td>
                 <td><input type="number" class="spoil-input" data-index="${index}" value="${item.spoil}" min="0"></td>
                 <td class="text-center"><span class="stock-akhir-badge ${stockClass}">${finalStock}</span></td>
-                <td class="text-center"><button class="icon-btn-del delete-btn" data-index="${index}" title="Hapus Menu">🗑</button></td>
+                <td class="text-center"><button class="icon-btn-del delete-btn" data-index="${index}" title="Delete Menu">🗑</button></td>
             `;
         }
         tableBody.appendChild(tr);
@@ -273,7 +273,7 @@ function renderCards() {
     const currentData = stockData[currentTab];
 
     if (currentData.length === 0) {
-        cardsEl.innerHTML = `<div style="text-align:center;padding:24px;color:var(--text-muted);">Belum ada item.</div>`;
+        cardsEl.innerHTML = `<div style="text-align:center;padding:24px;color:var(--text-muted);">No items yet.</div>`;
         return;
     }
 
@@ -285,7 +285,7 @@ function renderCards() {
 
         const spoilField = currentTab === 'bar'
             ? `<div class="stock-card-field">
-                <label>Sisa Fisik</label>
+                <label>Physical Balance</label>
                 <input type="number" class="spoil-input" data-index="${index}" value="${barBalanceValue}" placeholder="${expectedBar}" min="0" style="border-color:var(--accent);" />
                </div>`
             : `<div class="stock-card-field">
@@ -299,12 +299,12 @@ function renderCards() {
             <div class="stock-card-name">${item.name}</div>
             <div style="display:flex;align-items:center;gap:8px;">
               <span class="stock-akhir-badge ${stockClass}">${finalStock}</span>
-              <button class="icon-btn-del delete-btn" data-index="${index}" title="Hapus">🗑</button>
+              <button class="icon-btn-del delete-btn" data-index="${index}" title="Delete">🗑</button>
             </div>
           </div>
           <div class="stock-card-grid">
             <div class="stock-card-field">
-              <label>Awal</label>
+              <label>Initial</label>
               <input type="number" class="initial-input" data-index="${index}" value="${item.initial}" min="0" />
             </div>
             <div class="stock-card-field">
@@ -353,7 +353,7 @@ function renderCards() {
     cardsEl.querySelectorAll('.delete-btn').forEach(btn => {
         btn.addEventListener('click', e => {
             const idx = parseInt(e.currentTarget.dataset.index);
-            if (confirm(`Hapus "${stockData[currentTab][idx].name}"?`)) {
+            if (confirm(`Delete "${stockData[currentTab][idx].name}"?`)) {
                 stockData[currentTab].splice(idx, 1);
                 saveData(); renderTable();
             }
@@ -401,7 +401,7 @@ function checkAllAlerts() {
             alertDiv.className = 'alert-banner';
             alertDiv.innerHTML = `
                 <span>⚠️</span>
-                <span>Peringatan: Stok Akhir <strong>${item.name}</strong> (${currentTab.toUpperCase()}) kurang dari 0!</span>
+                <span>Warning: Final Stock of <strong>${item.name}</strong> (${currentTab.toUpperCase()}) is less than 0!</span>
             `;
             alertContainer.appendChild(alertDiv);
         }
@@ -459,7 +459,7 @@ function attachInputListeners() {
     document.querySelectorAll('.delete-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
             const index = e.currentTarget.getAttribute('data-index');
-            if(confirm(`Apakah Anda yakin ingin menghapus ${stockData[currentTab][index].name}?`)) {
+            if(confirm(`Are you sure you want to delete ${stockData[currentTab][index].name}?`)) {
                 stockData[currentTab].splice(index, 1);
                 saveData();
                 renderTable(); 
@@ -477,7 +477,7 @@ window.addStockItem = function() {
     const initial = parseInt(initialInput.value) || 0;
     
     if (!name) {
-        alert("Nama menu tidak boleh kosong.");
+        alert("Menu name cannot be empty.");
         return;
     }
     
@@ -530,94 +530,94 @@ function parseLocaleDate(dateStr) {
     } catch(e) { return null; }
 }
 
-window.processExportExcel = function() {
+window.processExportExcel = async function() {
     const type = document.getElementById('export-type').value;
-    const history = getHistory();
+    const history = await getHistory();
     const currentData = stockData[currentTab];
     let dataToExport = [];
-    let title = "Stok";
+    let title = "Stock";
 
     if (type === 'hari_ini') {
-        title = `Rekap Hari Ini (Belum Ditutup) - ${currentTab.toUpperCase()}`;
+        title = `Today's Recap (Not Closed) - ${currentTab.toUpperCase()}`;
         dataToExport = currentData.map(item => ({
-            "Nama Menu": item.name,
-            "Awal": item.initial,
+            "Menu Name": item.name,
+            "Initial": item.initial,
             "IN": item.in,
             "OUT": item.out,
-            "Spoil / Sisa Fisik": currentTab === 'bar' && (item.spoil === "" || item.spoil == null) ? calculateExpectedBar(item) : item.spoil,
-            "Akhir / Terpakai": currentTab === 'bar' ? calculateExpectedBar(item) : calculateFinalStock(item)
+            "Spoil / Physical Balance": currentTab === 'bar' && (item.spoil === "" || item.spoil == null) ? calculateExpectedBar(item) : item.spoil,
+            "Final / Used": currentTab === 'bar' ? calculateExpectedBar(item) : calculateFinalStock(item)
         }));
     } 
     else if (type === 'harian') {
         const dateInput = document.getElementById('export-date').value; // YYYY-MM-DD
-        if (!dateInput) return alert("Pilih tanggal terlebih dahulu!");
+        if (!dateInput) return alert("Please select a date first!");
         
         let found = history.filter(h => parseLocaleDate(h.date) === dateInput);
-        if (found.length === 0) return alert("Tidak ada data rekap untuk tanggal tersebut.");
+        if (found.length === 0) return alert("No recap data for that date.");
         
-        title = `Laporan Harian ${dateInput} - ${currentTab.toUpperCase()}`;
+        title = `Daily Report ${dateInput} - ${currentTab.toUpperCase()}`;
         found.forEach(h => {
             h.items.forEach(item => {
                 dataToExport.push({
-                    "Tanggal Rekap": h.date,
-                    "Nama Menu": item.name,
-                    "Awal": item.initial,
+                    "Recap Date": h.date,
+                    "Menu Name": item.name,
+                    "Initial": item.initial,
                     "IN": item.in,
                     "OUT": item.out,
-                    "Spoil / Sisa Fisik": item.spoil,
-                    "Akhir / Terpakai": item.final
+                    "Spoil / Physical Balance": item.spoil,
+                    "Final / Used": item.final
                 });
             });
         });
     }
     else if (type === 'bulanan') {
         const monthInput = document.getElementById('export-month').value; // YYYY-MM
-        if (!monthInput) return alert("Pilih bulan terlebih dahulu!");
+        if (!monthInput) return alert("Please select a month first!");
         
         let found = history.filter(h => {
             let parsed = parseLocaleDate(h.date);
             return parsed && parsed.startsWith(monthInput);
         });
-        if (found.length === 0) return alert("Tidak ada data rekap untuk bulan tersebut.");
+        if (found.length === 0) return alert("No recap data for that month.");
         
-        title = `Laporan Bulanan ${monthInput} - ${currentTab.toUpperCase()}`;
+        title = `Monthly Report ${monthInput} - ${currentTab.toUpperCase()}`;
         found.forEach(h => {
             h.items.forEach(item => {
                 dataToExport.push({
-                    "Tanggal Rekap": h.date,
-                    "Nama Menu": item.name,
-                    "Awal": item.initial,
+                    "Recap Date": h.date,
+                    "Menu Name": item.name,
+                    "Initial": item.initial,
                     "IN": item.in,
                     "OUT": item.out,
-                    "Spoil / Sisa Fisik": item.spoil,
-                    "Akhir / Terpakai": item.final
+                    "Spoil / Physical Balance": item.spoil,
+                    "Final / Used": item.final
                 });
             });
         });
     }
     else if (type === 'semua') {
-        if (history.length === 0) return alert("Belum ada riwayat rekap yang tersimpan.");
-        title = `Semua Riwayat - ${currentTab.toUpperCase()}`;
+        if (history.length === 0) return alert("No saved recap history yet.");
+        title = `All History - ${currentTab.toUpperCase()}`;
         history.forEach(h => {
             h.items.forEach(item => {
                 dataToExport.push({
-                    "Tanggal Rekap": h.date,
-                    "Nama Menu": item.name,
-                    "Awal": item.initial,
+                    "Recap Date": h.date,
+                    "Menu Name": item.name,
+                    "Initial": item.initial,
                     "IN": item.in,
                     "OUT": item.out,
-                    "Spoil / Sisa Fisik": item.spoil,
-                    "Akhir / Terpakai": item.final
+                    "Spoil / Physical Balance": item.spoil,
+                    "Final / Used": item.final
                 });
             });
         });
     }
 
-    if (dataToExport.length === 0) return alert("Data kosong.");
+    if (dataToExport.length === 0) return alert("Data is empty.");
 
     const ws = XLSX.utils.json_to_sheet(dataToExport);
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Laporan Stok");
+    XLSX.utils.book_append_sheet(wb, ws, "Stock Report");
     
     // Download
     XLSX.writeFile(wb, `${title}.xlsx`);
@@ -631,21 +631,17 @@ function getHistoryLocal() {
     return raw ? JSON.parse(raw) : [];
 }
 
+// Read-only: fetch from cloud, fallback to local (no auto-save/migrate side effects)
 async function getHistory() {
     try {
         const res = await fetch(`/api/stock/history_${currentTab}`);
-        if(res.ok) {
+        if (res.ok) {
             const cloudData = await res.json();
             if (Array.isArray(cloudData) && cloudData.length > 0) return cloudData;
         }
     } catch(e) {}
-    
-    // Fallback to local, and push to cloud if found!
-    const localHist = getHistoryLocal();
-    if (localHist.length > 0) {
-        saveHistory(localHist);
-    }
-    return localHist;
+    // Fallback to local storage only (no migrate/save here to avoid race conditions)
+    return getHistoryLocal();
 }
 
 async function saveHistory(historyArray) {
@@ -661,11 +657,11 @@ async function saveHistory(historyArray) {
 }
 
 closeDayBtn.addEventListener('click', async () => {
-    const confirmClose = confirm(`Anda yakin ingin 'Tutup Hari' untuk bagian ${currentTab.toUpperCase()}?\n\nData hari ini akan disimpan ke Rekap, lalu Stock Akhir akan menjadi Stock Awal untuk besok, dan nilai Masuk/Keluar/Rusak akan dikosongkan.`);
+    const confirmClose = confirm(`Are you sure you want to 'Close Day' for ${currentTab.toUpperCase()}?\n\nToday's data will be saved to Recap, then Final Stock will become Initial Stock for tomorrow, and In/Out/Spoil values will be cleared.`);
     if (!confirmClose) return;
 
     closeDayBtn.disabled = true;
-    closeDayBtn.innerHTML = "Menyimpan ke Cloud... ☁️";
+    closeDayBtn.innerHTML = "Saving to Cloud... ☁️";
 
     // Pastikan semua perubahan input sudah tersimpan ke cloud sebelum tutup hari
     await flushSave();
@@ -711,20 +707,32 @@ closeDayBtn.addEventListener('click', async () => {
     saveData();
     renderTable();
     closeDayBtn.disabled = false;
-    closeDayBtn.innerHTML = "Tutup Hari & Simpan Rekap";
-    alert(`Berhasil Tutup Hari untuk ${currentTab.toUpperCase()}! Rekap telah disinkronkan ke Cloud.`);
+    closeDayBtn.innerHTML = "Close Day & Save Recap";
+    alert(`Successfully Closed Day for ${currentTab.toUpperCase()}! Recap has been synced to Cloud.`);
 });
 
 // History Modal Logic
 window.clearHistory = async function() {
-    if(confirm(`Yakin ingin menghapus SELURUH riwayat rekap ${currentTab.toUpperCase()}? Data yang dihapus tidak bisa dikembalikan.`)) {
+    if(confirm(`Are you sure you want to delete ALL recap history for ${currentTab.toUpperCase()}? Deleted data cannot be recovered.`)) {
         const key = currentTab === 'kitchen' ? 'lokalin_kitchen_stock_history' : 'lokalin_bar_stock_history';
         localStorage.removeItem(key);
         await saveHistory([]);
         document.getElementById('historyModal').classList.remove('show');
         setTimeout(() => viewHistoryBtn.click(), 50);
-        alert(`Riwayat rekap ${currentTab.toUpperCase()} berhasil dibersihkan dari Cloud!`);
+        alert(`Recap history for ${currentTab.toUpperCase()} successfully cleared from Cloud!`);
     }
+}
+
+// Delete a single daily recap entry by index
+window.deleteHistoryEntry = async function(index) {
+    const history = await getHistory();
+    if (index < 0 || index >= history.length) return;
+    const entryDate = history[index].date;
+    if (!confirm(`Delete recap entry "${entryDate}" for ${currentTab.toUpperCase()}?\nThis action cannot be undone.`)) return;
+    history.splice(index, 1);
+    await saveHistory(history);
+    // Re-render the history modal
+    viewHistoryBtn.click();
 }
 
 window.closeHistoryModal = function() {
@@ -736,32 +744,35 @@ viewHistoryBtn.addEventListener('click', async () => {
     const container = document.getElementById('historyContainer');
     
     // Set Modal Title based on tab
-    document.querySelector('.checkout-title').innerHTML = `🗓️ Riwayat Rekap ${currentTab.toUpperCase()}`;
+    document.querySelector('.checkout-title').innerHTML = `🗓️ Recap History ${currentTab.toUpperCase()}`;
 
     if (history.length === 0) {
-        container.innerHTML = `<div style="text-align:center; padding:30px; color:var(--text-muted);">Belum ada riwayat rekap untuk ${currentTab.toUpperCase()}. Klik "Tutup Hari & Simpan" untuk menyimpan rekap.</div>`;
+        container.innerHTML = `<div style="text-align:center; padding:30px; color:var(--text-muted);">No recap history for ${currentTab.toUpperCase()} yet. Click "Close Day & Save" to save recap.</div>`;
     } else {
         container.innerHTML = history.map((record, i) => `
             <div class="history-card">
-                <div class="history-date">📅 ${record.date}</div>
+                <div class="history-date">
+                    <span>📅 ${record.date}</span>
+                    <button onclick="deleteHistoryEntry(${i})" title="Delete this recap entry" style="background:rgba(229,62,62,0.15);border:1px solid rgba(229,62,62,0.35);color:#fc8181;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:0.75rem;font-weight:700;transition:all 0.2s;" onmouseover="this.style.background='rgba(229,62,62,0.3)'" onmouseout="this.style.background='rgba(229,62,62,0.15)'">🗑️ Delete</button>
+                </div>
                 <div style="overflow-x: auto;">
                     <table class="history-table">
                         <thead>
                             ${currentTab === 'bar' ? `
                             <tr>
-                                <th>Nama Menu</th>
-                                <th>Awal</th>
+                                <th>Menu Name</th>
+                                <th>Initial</th>
                                 <th>IN</th>
                                 <th>OUT</th>
-                                <th>Sisa (Balance)</th>
+                                <th>Balance</th>
                             </tr>` : `
                             <tr>
-                                <th>Nama Menu</th>
-                                <th>Awal</th>
+                                <th>Menu Name</th>
+                                <th>Initial</th>
                                 <th>IN</th>
                                 <th>OUT</th>
                                 <th>Spoil</th>
-                                <th>Akhir</th>
+                                <th>Final</th>
                             </tr>`}
                         </thead>
                         <tbody>
@@ -796,7 +807,7 @@ window.refreshStockData = async function() {
     if (!btn) return;
 
     btn.disabled = true;
-    btn.innerHTML = '⏳ Memuat...';
+    btn.innerHTML = '⏳ Loading...';
 
     try {
         const res = await fetch('/api/stock/data');
@@ -807,7 +818,7 @@ window.refreshStockData = async function() {
                 localStorage.setItem('lokalin_kitchen_stock_data', JSON.stringify(stockData.kitchen));
                 localStorage.setItem('lokalin_bar_stock_data_v2', JSON.stringify(stockData.bar));
                 renderTable();
-                btn.innerHTML = '✅ Berhasil!';
+                btn.innerHTML = '✅ Success!';
                 btn.style.color = 'var(--green)';
                 setTimeout(() => {
                     btn.innerHTML = '🔄 Refresh Data';
@@ -817,9 +828,9 @@ window.refreshStockData = async function() {
                 return;
             }
         }
-        throw new Error('Data tidak valid dari cloud');
+        throw new Error('Invalid data from cloud');
     } catch(e) {
-        btn.innerHTML = '❌ Gagal';
+        btn.innerHTML = '❌ Failed';
         btn.style.color = '#fc8181';
         setTimeout(() => {
             btn.innerHTML = '🔄 Refresh Data';
@@ -835,13 +846,13 @@ initStockData();
 if (saveDraftBtn) {
     saveDraftBtn.addEventListener('click', async () => {
         const originalText = saveDraftBtn.innerHTML;
-        saveDraftBtn.innerHTML = "☁️ Menyimpan...";
+        saveDraftBtn.innerHTML = "☁️ Saving...";
         saveDraftBtn.disabled = true;
 
         await flushSave();
 
         // Show temporary toast feedback
-        saveDraftBtn.innerHTML = "✅ Tersimpan!";
+        saveDraftBtn.innerHTML = "✅ Saved!";
         saveDraftBtn.style.background = "var(--green)";
         saveDraftBtn.style.color = "#fff";
         saveDraftBtn.disabled = false;

@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Manajemen Stok Harian — Lokalin</title>
-  <meta name="description" content="Manajemen stok harian." />
+  <title>Daily Stock Management — Lokalin</title>
+  <meta name="description" content="Daily stock management." />
   <link rel="stylesheet" href="/style.css?v=13" />
   <script src="/pin.js"></script>
   <style>
@@ -185,7 +185,7 @@
   <div class="admin-header-left">
     <button class="menu-toggle-btn" onclick="toggleSidebar()">☰</button>
     <span class="page-icon">📦</span>
-    <div class="page-title">Manajemen Stok Harian</div>
+    <div class="page-title">Daily Stock Management</div>
   </div>
 </div>
 
@@ -202,11 +202,11 @@
   <div class="action-grid">
     <button id="closeDayBtn" class="btn btn-primary">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-      Tutup Hari
+      Close Day
     </button>
     <button id="saveDraftBtn" class="btn btn-ghost" style="border-color:var(--accent);color:var(--accent);">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-      Simpan
+      Save
     </button>
     <button id="refreshDataBtn" class="btn btn-ghost" onclick="refreshStockData()">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
@@ -214,7 +214,7 @@
     </button>
     <button id="viewHistoryBtn" class="btn btn-ghost">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-      Riwayat
+      History
     </button>
     <button onclick="openExportModal()" class="btn" style="background:#1d6f42;color:#fff;border:none;grid-column:1/-1;justify-content:center;">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
@@ -223,11 +223,11 @@
   </div>
   <!-- Compact Add Form -->
   <div class="add-form-compact">
-    <h3 id="add-title">+ Tambah Menu ke Stok</h3>
+    <h3 id="add-title">+ Add Menu to Stock</h3>
     <div class="form-inline">
-      <input type="text" id="inp-name" placeholder="Nama menu (cth: Nasi Goreng)" />
+      <input type="text" id="inp-name" placeholder="Menu name (e.g., Fried Rice)" />
       <input type="number" id="inp-initial" placeholder="0" min="0" value="0" class="inp-initial" />
-      <button class="btn btn-primary" onclick="addStockItem()" style="white-space:nowrap;">+ Tambah</button>
+      <button class="btn btn-primary" onclick="addStockItem()" style="white-space:nowrap;">+ Add</button>
     </div>
   </div>
 
@@ -238,13 +238,13 @@
     <table class="stock-table">
       <thead>
         <tr>
-          <th>Nama Menu</th>
-          <th>Awal</th>
+          <th>Menu Name</th>
+          <th>Initial</th>
           <th>IN</th>
           <th>OUT</th>
           <th>Spoil</th>
-          <th style="text-align:center;">Akhir</th>
-          <th style="text-align:center;">Aksi</th>
+          <th style="text-align:center;">Final</th>
+          <th style="text-align:center;">Action</th>
         </tr>
       </thead>
       <tbody id="stockTableBody"></tbody>
@@ -259,9 +259,9 @@
 <div id="historyModal" class="modal-overlay">
   <div class="checkout-panel" style="max-height: 85vh; overflow-y: auto; text-align: left; max-width: 900px; opacity: 1 !important; transform: none !important;">
     <div class="checkout-header">
-      <h2 class="checkout-title">🗓️ Riwayat Rekap Harian</h2>
+      <h2 class="checkout-title">🗓️ Daily Recap History</h2>
       <div style="display: flex; align-items: center; gap: 12px;">
-        <button class="btn btn-ghost" onclick="clearHistory()" style="padding: 6px 12px; color: #fc8181; border-color: rgba(229,62,62,0.3); font-size: 0.8rem;">🗑️ Bersihkan</button>
+        <button class="btn btn-ghost" onclick="clearHistory()" style="padding: 6px 12px; color: #fc8181; border-color: rgba(229,62,62,0.3); font-size: 0.8rem;">🗑️ Clear</button>
         <button class="modal-close" onclick="closeHistoryModal()">✕</button>
       </div>
     </div>
@@ -275,32 +275,32 @@
 <div id="exportModal" class="modal-overlay">
   <div class="checkout-panel" style="text-align: left; opacity: 1 !important; transform: none !important;">
     <div class="checkout-header">
-      <h2 class="checkout-title">📊 Export Data ke Excel</h2>
+      <h2 class="checkout-title">📊 Export Data to Excel</h2>
       <button class="modal-close" onclick="closeExportModal()">✕</button>
     </div>
     
     <div style="margin-top: 16px; display: flex; flex-direction: column; gap: 16px;">
       <div class="form-group">
-        <label>Format Laporan</label>
+        <label>Report Format</label>
         <select id="export-type" class="modal-textarea" style="height: 48px; padding: 12px; font-weight: 600;" onchange="toggleExportInputs()">
-          <option value="hari_ini">Rekap Hari Ini (Belum Ditutup)</option>
-          <option value="harian">Laporan Harian (Pilih Tanggal)</option>
-          <option value="bulanan">Laporan Bulanan (Pilih Bulan)</option>
-          <option value="semua">Semua Riwayat Tersimpan</option>
+          <option value="hari_ini">Today's Recap (Not Closed)</option>
+          <option value="harian">Daily Report (Select Date)</option>
+          <option value="bulanan">Monthly Report (Select Month)</option>
+          <option value="semua">All Saved History</option>
         </select>
       </div>
       
       <div class="form-group" id="export-date-group" style="display: none;">
-        <label>Pilih Tanggal</label>
+        <label>Select Date</label>
         <input type="date" id="export-date" class="modal-textarea" style="height: 48px; padding: 12px; font-weight: 600;" />
       </div>
       
       <div class="form-group" id="export-month-group" style="display: none;">
-        <label>Pilih Bulan</label>
+        <label>Select Month</label>
         <input type="month" id="export-month" class="modal-textarea" style="height: 48px; padding: 12px; font-weight: 600;" />
       </div>
       
-      <button class="btn btn-primary" onclick="processExportExcel()" style="width: 100%; margin-top: 8px; background: #1d6f42;">Unduh Excel (.xlsx)</button>
+      <button class="btn btn-primary" onclick="processExportExcel()" style="width: 100%; margin-top: 8px; background: #1d6f42;">Download Excel (.xlsx)</button>
     </div>
   </div>
 </div>
@@ -310,7 +310,7 @@
 <div id="sidebar-nav">
   <div class="sidebar-header">
     <div class="restaurant-name">🍽️ Lokalin</div>
-    <button class="close-btn" onclick="toggleSidebar()" aria-label="Tutup">
+    <button class="close-btn" onclick="toggleSidebar()" aria-label="Close">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
     </button>
   </div>
@@ -320,11 +320,11 @@
   </a>
   <a href="/order?table=5" class="sidebar-link">
     <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
-    Pesan (Customer)
+    Order (Customer)
   </a>
   <a href="/cashier" class="sidebar-link">
     <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
-    Bar &amp; Kasir
+    Bar &amp; Cashier
   </a>
   <a href="/admin" class="sidebar-link">
     <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
@@ -332,16 +332,16 @@
   </a>
   <a href="/stock" class="sidebar-link" style="color:#fff;">
     <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
-    Manajemen Stok
+    Stock Management
   </a>
   <a href="/sales" class="sidebar-link">
     <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
-    Laporan Penjualan
+    Sales Report
   </a>
 </div>
 
 <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
-<script src="/stock.js?v=10"></script>
+<script src="/stock.js?v=11"></script>
 <script>
   function toggleSidebar() {
     document.getElementById('sidebar-nav').classList.toggle('show');
