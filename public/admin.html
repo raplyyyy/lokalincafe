@@ -112,6 +112,28 @@
 
 </div>
 
+<!-- Move Category Modal -->
+<div id="moveCatModal" class="modal-overlay" onclick="if(event.target===this)closeMoveModal()">
+  <div class="checkout-panel" style="max-width:420px;text-align:left;opacity:1!important;transform:none!important;">
+    <div class="checkout-header">
+      <div>
+        <h2 class="checkout-title" style="font-size:1.1rem;">📁 Move to Category</h2>
+        <div style="font-size:0.78rem;color:var(--text-muted);margin-top:2px;">
+          Item: <strong id="moveCatItemName" style="color:var(--text-secondary);"></strong>
+        </div>
+        <div style="font-size:0.78rem;color:var(--text-muted);">
+          Current: <span id="moveCatCurrent" style="color:var(--accent);font-weight:700;"></span>
+        </div>
+      </div>
+      <button class="modal-close" onclick="closeMoveModal()">✕</button>
+    </div>
+    <div id="moveCatOptions" style="display:flex;flex-direction:column;gap:8px;margin-top:16px;padding:0 4px 4px;"></div>
+    <div style="margin-top:16px;">
+      <button class="btn btn-ghost" onclick="closeMoveModal()" style="width:100%;justify-content:center;">Cancel</button>
+    </div>
+  </div>
+</div>
+
 <div id="sidebar-overlay" onclick="toggleSidebar()"></div>
 <div id="sidebar-nav">
   <div class="sidebar-header">
@@ -339,34 +361,50 @@ function clearForm() {
   document.getElementById("inp-desc").value = "";
 }
 
-async function changeItemCategory(itemId, currentCat) {
+let _moveCatItemId = null;
+
+function changeItemCategory(itemId, currentCat) {
+  _moveCatItemId = itemId;
   const cats = currentTab === 'food' ? FOOD_CATEGORIES : DRINK_CATEGORIES;
-  const options = cats.map((c, i) => `${i + 1}. ${c.label} (${c.value})`).join('\n');
-  const input = prompt(
-    `Move "${itemId}" to which category?\nCurrent: ${currentCat || '(none)'}\n\n${options}\n\nType the number or exact category name:`,
-    currentCat
-  );
-  if (!input || input.trim() === '' || input.trim() === currentCat) return;
 
-  // Accept number or direct name
-  let newCat = input.trim();
-  const numChoice = parseInt(newCat);
-  if (!isNaN(numChoice) && numChoice >= 1 && numChoice <= cats.length) {
-    newCat = cats[numChoice - 1].value;
-  }
-  // Validate
-  const valid = cats.map(c => c.value.toLowerCase());
-  if (!valid.includes(newCat.toLowerCase())) {
-    // Try partial match
-    const match = cats.find(c => c.value.toLowerCase().includes(newCat.toLowerCase()));
-    if (!match) { alert(`Invalid category: "${newCat}"`); return; }
-    newCat = match.value;
-  } else {
-    newCat = cats.find(c => c.value.toLowerCase() === newCat.toLowerCase()).value;
-  }
+  // Populate modal info
+  document.getElementById('moveCatItemName').textContent = itemId;
+  document.getElementById('moveCatCurrent').textContent = currentCat || '(none)';
 
+  // Build clickable option cards
+  const container = document.getElementById('moveCatOptions');
+  container.innerHTML = cats.map(c => {
+    const isActive = c.value === currentCat;
+    return `
+      <button onclick="applyMoveCategory('${c.value}')" style="
+        display:flex;align-items:center;gap:10px;
+        padding:12px 14px;
+        background:${isActive ? 'rgba(99,179,237,0.15)' : 'var(--bg-input)'};
+        border:1px solid ${isActive ? 'rgba(99,179,237,0.5)' : 'var(--border)'};
+        border-radius:var(--radius-md);
+        color:${isActive ? 'var(--accent)' : 'var(--text-primary)'};
+        font-family:inherit;font-size:0.88rem;font-weight:${isActive ? '800' : '600'};
+        cursor:pointer;width:100%;text-align:left;
+        transition:all 0.15s;
+      " onmouseover="if('${c.value}'!=='${currentCat}'){this.style.background='rgba(99,179,237,0.1)';this.style.borderColor='rgba(99,179,237,0.3)';}" onmouseout="if('${c.value}'!=='${currentCat}'){this.style.background='var(--bg-input)';this.style.borderColor='var(--border)';}">
+        <span style="font-size:1.2rem;">${c.label.split(' ')[0]}</span>
+        <span>${c.label.split(' ').slice(1).join(' ')}${isActive ? ' ✓' : ''}</span>
+      </button>`;
+  }).join('');
+
+  document.getElementById('moveCatModal').classList.add('show');
+}
+
+function closeMoveModal() {
+  document.getElementById('moveCatModal').classList.remove('show');
+  _moveCatItemId = null;
+}
+
+async function applyMoveCategory(newCat) {
+  if (!_moveCatItemId) return;
+  closeMoveModal();
   try {
-    const res = await fetch(`/api/menu/item/${itemId}/category`, {
+    const res = await fetch(`/api/menu/item/${_moveCatItemId}/category`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ category: newCat })
@@ -374,7 +412,6 @@ async function changeItemCategory(itemId, currentCat) {
     const data = await res.json();
     if (!data.success) throw new Error();
     await loadMenu();
-    alert(`✅ Moved to "${newCat}" successfully!`);
   } catch { alert('Failed to update category.'); }
 }
 
