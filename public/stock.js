@@ -124,49 +124,46 @@ async function pushToCloud(url, items, savedAt) {
 }
 
 async function initStockData() {
-    let oldKitchen = await readLocalTab('lokalin_kitchen_stock_data');
-    let oldBar = await readLocalTab('lokalin_bar_stock_data_v2');
-
-    const [cloudKitchen, cloudBar] = await Promise.all([
+    // ── 1. Fetch cloud data (authoritative shared state) and local cache in parallel
+    const [cloudKitchen, cloudBar, oldKitchen, oldBar] = await Promise.all([
         fetchCloudTab('/api/stock/data_kitchen'),
-        fetchCloudTab('/api/stock/data_bar')
+        fetchCloudTab('/api/stock/data_bar'),
+        readLocalTab('lokalin_kitchen_stock_data'),
+        readLocalTab('lokalin_bar_stock_data_v2')
     ]);
 
-    // ── Kitchen: Cloud wins if it has data AND is newer OR local has no valid timestamp.
-    //    If cloud has no data at all, fall back to local.
+    // ── 2. Kitchen: prefer cloud if cloud has items (cloud = source of truth).
+    //    Fall back to local ONLY if cloud is null/empty.
+    //    NEVER auto-push local to cloud here — that causes race conditions between devices.
     if (cloudKitchen) {
         const cloudTs = cloudKitchen.savedAt || 0;
         const localTs = oldKitchen ? oldKitchen.savedAt : 0;
-        // Use cloud if: no local data, OR cloud timestamp is newer, OR local timestamp is NaN/0
-        if (!oldKitchen || cloudTs >= localTs || localTs === 0) {
+        if (cloudTs >= localTs || !oldKitchen || localTs === 0) {
             stockData.kitchen = cloudKitchen.items;
             writeLocal('lokalin_kitchen_stock_data', cloudKitchen.items, new Date().toISOString());
         } else {
+            // Local is strictly newer — use local, but DON'T auto-push to avoid clobbering other devices
             stockData.kitchen = oldKitchen.items;
-            pushToCloud('/api/stock/data_kitchen', oldKitchen.items, new Date().toISOString());
         }
     } else if (oldKitchen) {
         stockData.kitchen = oldKitchen.items;
-        pushToCloud('/api/stock/data_kitchen', oldKitchen.items, new Date().toISOString());
     }
 
-    // ── Bar: same logic
+    // ── 3. Bar: same logic
     if (cloudBar) {
         const cloudTs = cloudBar.savedAt || 0;
         const localTs = oldBar ? oldBar.savedAt : 0;
-        if (!oldBar || cloudTs >= localTs || localTs === 0) {
+        if (cloudTs >= localTs || !oldBar || localTs === 0) {
             stockData.bar = cloudBar.items;
             writeLocal('lokalin_bar_stock_data_v2', cloudBar.items, new Date().toISOString());
         } else {
             stockData.bar = oldBar.items;
-            pushToCloud('/api/stock/data_bar', oldBar.items, new Date().toISOString());
         }
     } else if (oldBar) {
         stockData.bar = oldBar.items;
-        pushToCloud('/api/stock/data_bar', oldBar.items, new Date().toISOString());
     }
 
-    // ── Last-resort fallback: migrate from old combined /api/stock/data endpoint
+    // ── 4. Last-resort: migrate from old combined endpoint if both are empty
     if (!cloudKitchen && !oldKitchen && !cloudBar && !oldBar) {
         try {
             const res = await fetch('/api/stock/data');
@@ -186,6 +183,7 @@ async function initStockData() {
 
     renderTable();
 }
+
 
 // Elements
 const tableBody = document.getElementById('stockTableBody');
