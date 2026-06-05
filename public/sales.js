@@ -77,8 +77,17 @@ function allProducts(tab) {
     return filtered.sort((a, b) => a.name.localeCompare(b.name));
 }
 
-function todayDateKey() {
+function getBusinessDate() {
     const d = new Date();
+    // Jika jam antara 00:00 - 04:59, hitung sebagai hari bisnis kemarin
+    if (d.getHours() < 5) {
+        d.setDate(d.getDate() - 1);
+    }
+    return d;
+}
+
+function todayDateKey() {
+    const d = getBusinessDate();
     return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 }
 
@@ -318,7 +327,12 @@ document.getElementById('closeDayBtn').addEventListener('click', async () => {
             await flushDraft();
 
             const dateKey = todayDateKey();
-            const dateStr = new Date().toLocaleString('id-ID', {
+            const businessDate = getBusinessDate();
+            // Simpan jam asli saat klik, tapi tangggalnya mengikuti hari bisnis
+            const realDate = new Date();
+            businessDate.setHours(realDate.getHours(), realDate.getMinutes(), realDate.getSeconds());
+
+            const dateStr = businessDate.toLocaleString('id-ID', {
                 weekday:'long', year:'numeric', month:'long', day:'numeric', hour:'2-digit', minute:'2-digit'
             });
 
