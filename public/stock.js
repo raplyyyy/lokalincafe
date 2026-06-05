@@ -938,4 +938,21 @@ initStockData();
 
 if (saveDraftBtn) {
     saveDraftBtn.addEventListener('click', async () => {
-        const originalText = saveDraftBtn.innerHTML;
+        const originalText = saveDraftBtn.innerHTML;
+        saveDraftBtn.innerHTML = "☁️ Saving...";
+        saveDraftBtn.disabled = true;
+
+        await flushSave();
+
+        saveDraftBtn.innerHTML = "✅ Saved!";
+        saveDraftBtn.style.background = "var(--green)";
+        saveDraftBtn.style.color = "#fff";
+        saveDraftBtn.disabled = false;
+
+        setTimeout(() => {
+            saveDraftBtn.innerHTML = originalText;
+            saveDraftBtn.style.background = "transparent";
+            saveDraftBtn.style.color = "var(--accent)";
+        }, 2000);
+    });
+}
