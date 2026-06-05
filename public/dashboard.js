@@ -2,8 +2,8 @@
 (function initGreeting() {
     const now = new Date();
     const hour = now.getHours();
-    const greet = hour < 11 ? 'Selamat Pagi' : hour < 15 ? 'Selamat Siang' : hour < 18 ? 'Selamat Sore' : 'Selamat Malam';
-    const dateStr = now.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+    const greet = hour < 11 ? 'Good Morning' : hour < 15 ? 'Good Afternoon' : hour < 18 ? 'Good Evening' : 'Good Night';
+    const dateStr = now.toLocaleDateString('en-US', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
     document.getElementById('greetText').textContent = `${greet}, Lokalin! ☕`;
     document.getElementById('dateText').textContent = dateStr;
 })();
@@ -58,14 +58,14 @@ async function loadActiveOrders() {
 
     const container = document.getElementById('active-orders-list');
     if (!Array.isArray(list) || list.length === 0) {
-        container.innerHTML = `<div style="text-align:center;padding:20px 0;color:var(--text-muted);font-size:0.85rem;">Tidak ada order aktif saat ini.</div>`;
+        container.innerHTML = `<div style="text-align:center;padding:20px 0;color:var(--text-muted);font-size:0.85rem;">No active orders currently.</div>`;
         return;
     }
 
     container.innerHTML = list.map(o => {
         const allItems = [...(o.foodItems || []), ...(o.drinkItems || [])];
         const itemsText = allItems.slice(0, 3).map(i => `${i.name}${i.qty > 1 ? ' ×'+i.qty : ''}`).join(', ')
-            + (allItems.length > 3 ? ` +${allItems.length - 3} lainnya` : '');
+            + (allItems.length > 3 ? ` +${allItems.length - 3} more` : '');
         const dotClass = o.drinkStatus === 'ready' ? 'dot-ready' : o.drinkStatus === 'in-progress' ? 'dot-progress' : 'dot-pending';
         const time = new Date(o.timestamp).toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit' });
         return `
@@ -84,7 +84,7 @@ async function loadStockAlerts() {
     const data = await fetchJSON('/api/stock/data');
 
     if (!data || (!Array.isArray(data.kitchen) && !Array.isArray(data.bar))) {
-        container.innerHTML = `<div style="text-align:center;padding:20px 0;color:var(--text-muted);font-size:0.85rem;">Tidak bisa memuat stok.</div>`;
+        container.innerHTML = `<div style="text-align:center;padding:20px 0;color:var(--text-muted);font-size:0.85rem;">Cannot load stock.</div>`;
         return;
     }
 
@@ -99,7 +99,7 @@ async function loadStockAlerts() {
     setEl('stat-critical', alerts.length);
 
     if (alerts.length === 0) {
-        container.innerHTML = `<div style="text-align:center;padding:20px 0;color:var(--green);font-size:0.85rem;font-weight:600;">✅ Semua stok aman!</div>`;
+        container.innerHTML = `<div style="text-align:center;padding:20px 0;color:var(--green);font-size:0.85rem;font-weight:600;">✅ All stock is safe!</div>`;
         return;
     }
 
@@ -110,7 +110,7 @@ async function loadStockAlerts() {
         </div>`).join('');
 
     if (alerts.length > 8) {
-        container.innerHTML += `<div style="text-align:center;padding:8px 0;font-size:0.8rem;color:var(--text-muted);">+${alerts.length - 8} item lainnya → <a href="/stock.html" style="color:var(--accent);">Lihat Stok</a></div>`;
+        container.innerHTML += `<div style="text-align:center;padding:8px 0;font-size:0.8rem;color:var(--text-muted);">+${alerts.length - 8} more items → <a href="/stock" style="color:var(--accent);">View Stock</a></div>`;
     }
 }
 
@@ -120,7 +120,7 @@ async function loadTodaySales() {
     const draft = await fetchJSON('/api/sales/draft');
 
     if (!draft || !draft.todayEntries) {
-        container.innerHTML = `<div style="text-align:center;padding:20px 0;color:var(--text-muted);font-size:0.85rem;">Belum ada input penjualan hari ini.</div>`;
+        container.innerHTML = `<div style="text-align:center;padding:20px 0;color:var(--text-muted);font-size:0.85rem;">No sales input today.</div>`;
         return;
     }
 
@@ -131,7 +131,7 @@ async function loadTodaySales() {
         .sort((a, b) => b[1] - a[1]);
 
     if (sorted.length === 0) {
-        container.innerHTML = `<div style="text-align:center;padding:20px 0;color:var(--text-muted);font-size:0.85rem;">Belum ada input penjualan hari ini.</div>`;
+        container.innerHTML = `<div style="text-align:center;padding:20px 0;color:var(--text-muted);font-size:0.85rem;">No sales input today.</div>`;
         return;
     }
 
@@ -166,15 +166,15 @@ async function loadTodaySales() {
     const totalSold = sorted.reduce((s, [, q]) => s + q, 0);
     const rows = sorted.slice(0, 8).map(([id, qty]) => `
         <div class="sales-item">
-            <span class="sales-item-name">${PRODUCT_MAP[id] || 'Produk #' + id}</span>
+            <span class="sales-item-name">${PRODUCT_MAP[id] || 'Product #' + id}</span>
             <span class="sales-item-qty">${qty}</span>
         </div>`).join('');
 
     container.innerHTML = rows;
     if (sorted.length > 8) {
-        container.innerHTML += `<div style="text-align:center;padding:8px 0;font-size:0.8rem;color:var(--text-muted);">+${sorted.length - 8} item lainnya → <a href="/sales" style="color:var(--accent);">Lihat Semua</a></div>`;
+        container.innerHTML += `<div style="text-align:center;padding:8px 0;font-size:0.8rem;color:var(--text-muted);">+${sorted.length - 8} more items → <a href="/sales" style="color:var(--accent);">View All</a></div>`;
     }
-    container.innerHTML += `<div style="padding-top:10px;border-top:1px solid var(--border);font-size:0.85rem;font-weight:700;color:var(--text-secondary);">Total terjual: <span style="color:var(--accent)">${totalSold} item</span></div>`;
+    container.innerHTML += `<div style="padding-top:10px;border-top:1px solid var(--border);font-size:0.85rem;font-weight:700;color:var(--text-secondary);">Total sold: <span style="color:var(--accent)">${totalSold} items</span></div>`;
 }
 
 // ── Chart Penjualan ─────────────────────────────────────────────────────────────
@@ -215,9 +215,9 @@ async function loadChartData() {
     salesChartInstance = new Chart(ctx, {
         type: 'line',
         data: {
-            labels: chartLabels.length ? chartLabels : ['Kosong'],
+            labels: chartLabels.length ? chartLabels : ['Empty'],
             datasets: [{
-                label: 'Item Terjual',
+                label: 'Items Sold',
                 data: chartData.length ? chartData : [0],
                 borderColor: '#ff725e',
                 backgroundColor: 'rgba(255, 114, 94, 0.1)',
@@ -271,8 +271,8 @@ async function loadAll() {
         loadChartData()
     ]);
 
-    const now = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-    setEl('lastUpdated', `Terakhir diperbarui: ${now}`);
+    const now = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    setEl('lastUpdated', `Last updated: ${now}`);
     if (btn) { btn.textContent = '🔄 Refresh'; btn.disabled = false; }
 }
 

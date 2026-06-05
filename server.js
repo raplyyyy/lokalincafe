@@ -65,12 +65,18 @@ app.get("/api/menu", async (req, res) => {
     
     // Group into { food: [], drinks: [] } for frontend
     // Filter out all system/internal entries (SYS_STOCK_*, SYS_SALES_*, category: System)
+    // IMPORTANT: This whitelist must stay in sync with DRINK_CATEGORIES in admin.html
+    const DRINK_CATEGORY_WHITELIST = new Set([
+      'coffee', 'non-coffee', 'kopi', 'drink', 'minuman',
+      'tea', 'teh', 'juice', 'jus', 'blend',
+      'squash', 'water', 'other drink'
+    ]);
     const menu = { food: [], drinks: [] };
     for (const item of data) {
       if (item.id.startsWith('SYS_')) continue;
       if (item.category === 'System') continue;
-      const cat = item.category ? item.category.toLowerCase() : "";
-      if (cat.includes('coffee') || cat.includes('kopi') || cat.includes('drink') || cat.includes('minuman') || cat.includes('tea') || cat.includes('teh') || cat.includes('juice') || cat.includes('jus') || cat.includes('blend')) {
+      const cat = (item.category || "").toLowerCase().trim();
+      if (DRINK_CATEGORY_WHITELIST.has(cat) || [...DRINK_CATEGORY_WHITELIST].some(k => cat.includes(k))) {
         menu.drinks.push(item);
       } else {
         menu.food.push(item);
@@ -403,6 +409,9 @@ app.post("/api/sales/:key", async (req, res) => {
 // --- Stock Sync Endpoints ---
 app.get("/api/stock/:key", async (req, res) => {
   try {
+    // Prevent any browser/proxy caching of stock data
+    res.set('Cache-Control', 'no-store, no-cache, must-revalidate');
+    res.set('Pragma', 'no-cache');
     const key = `SYS_STOCK_${req.params.key.toUpperCase()}`;
     const { data, error } = await supabase.from('menu').select('description').eq('id', key).single();
     if (error && error.code !== 'PGRST116') throw error;

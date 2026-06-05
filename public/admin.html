@@ -192,20 +192,23 @@ async function loadMenu() {
   }
 }
 
+// ── These category lists MUST stay in sync with how order.js groups items from DB ──
 const FOOD_CATEGORIES = [
   { value: 'Main Food', label: '🍛 Main Food' },
   { value: 'Snack',     label: '🍟 Snack' },
   { value: 'Pasta',     label: '🍝 Pasta' },
   { value: 'Dessert',   label: '🍮 Dessert' },
+  { value: 'Paket',     label: '🎁 Paket' },
 ];
 const DRINK_CATEGORIES = [
-  { value: 'Coffee',    label: '☕ Coffee' },
-  { value: 'Tea',       label: '🍵 Tea' },
-  { value: 'Juice',     label: '🍊 Juice' },
-  { value: 'Squash',    label: '🥤 Squash' },
-  { value: 'Blend',     label: '🧋 Blend' },
-  { value: 'Water',     label: '💧 Water' },
-  { value: 'Other Drink', label: '🥛 Other Drink' },
+  { value: 'Coffee',      label: '☕ Coffee' },
+  { value: 'Non-Coffee',  label: '🥛 Non-Coffee' },
+  { value: 'Tea',         label: '🍵 Tea' },
+  { value: 'Juice',       label: '🍊 Juice' },
+  { value: 'Squash',      label: '🥤 Squash' },
+  { value: 'Blend',       label: '🧋 Blend' },
+  { value: 'Water',       label: '💧 Water' },
+  { value: 'Other Drink', label: '🍹 Other Drink' },
 ];
 
 function updateCategoryDropdown() {
@@ -319,7 +322,7 @@ function renderList() {
         </div>
       </div>
       <div class="row-price">Rp ${Number(item.price).toLocaleString("id-ID")}</div>
-      <button onclick="changeItemCategory('${item.id}', '${escHtml(item.category || '')}')" title="Move to another category" style="background:rgba(99,179,237,0.1);border:1px solid rgba(99,179,237,0.25);color:var(--accent);padding:6px 10px;border-radius:var(--radius-md);cursor:pointer;font-size:0.78rem;font-weight:700;white-space:nowrap;transition:all 0.2s;margin-right:6px;" onmouseover="this.style.background='rgba(99,179,237,0.22)'" onmouseout="this.style.background='rgba(99,179,237,0.1)'">📁 Move</button>
+      <button onclick="changeItemCategory('${item.id}', '${escHtml(item.name)}', '${escHtml(item.category || '')}')" title="Move to another category" style="background:rgba(99,179,237,0.1);border:1px solid rgba(99,179,237,0.25);color:var(--accent);padding:6px 10px;border-radius:var(--radius-md);cursor:pointer;font-size:0.78rem;font-weight:700;white-space:nowrap;transition:all 0.2s;margin-right:6px;" onmouseover="this.style.background='rgba(99,179,237,0.22)'" onmouseout="this.style.background='rgba(99,179,237,0.1)'">📁 Move</button>
       <button class="del-btn" onclick="deleteItem('${item.id}')">🗑 Delete</button>
     </div>`).join("");
 }
@@ -355,6 +358,7 @@ async function deleteItem(id) {
   } catch { alert("Failed to delete item."); }
 }
 
+
 function clearForm() {
   document.getElementById("inp-name").value = "";
   document.getElementById("inp-price").value = "";
@@ -363,12 +367,13 @@ function clearForm() {
 
 let _moveCatItemId = null;
 
-function changeItemCategory(itemId, currentCat) {
+// itemName is now passed explicitly so the modal shows the real name, not the ID
+function changeItemCategory(itemId, itemName, currentCat) {
   _moveCatItemId = itemId;
   const cats = currentTab === 'food' ? FOOD_CATEGORIES : DRINK_CATEGORIES;
 
-  // Populate modal info
-  document.getElementById('moveCatItemName').textContent = itemId;
+  // Populate modal info — show real item name, not raw ID
+  document.getElementById('moveCatItemName').textContent = itemName || itemId;
   document.getElementById('moveCatCurrent').textContent = currentCat || '(none)';
 
   // Build clickable option cards

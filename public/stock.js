@@ -71,49 +71,93 @@ let stockData = {
     ]
 };
 
-// Cloud Sync Initialization
-async function initStockData() {
+// ─── Cloud Sync Initialization ────────────────────────────────────────────────
+async function readLocalTab(key) {
     try {
-        const res = await fetch('/api/stock/data');
-        if (res.ok) {
-            const cloudData = await res.json();
-            if (cloudData && Array.isArray(cloudData.kitchen) && Array.isArray(cloudData.bar)) {
-                stockData = cloudData;
-                localStorage.setItem('lokalin_kitchen_stock_data', JSON.stringify(stockData.kitchen));
-                localStorage.setItem('lokalin_bar_stock_data_v2', JSON.stringify(stockData.bar));
-                renderTable();
-                return;
+        const str = localStorage.getItem(key);
+        if (str) {
+            const data = JSON.parse(str);
+            if (data && data.items && Array.isArray(data.items) && data.items.length > 0) {
+                return { items: data.items, savedAt: new Date(data.savedAt || 0).getTime() };
             }
         }
-    } catch (e) { console.error("Cloud sync init failed"); }
-    
-    // Fallback to local storage if cloud fails or is empty
-    let localFound = false;
-    const savedKitchen = localStorage.getItem('lokalin_kitchen_stock_data');
-    if (savedKitchen) {
-        try {
-            const parsed = JSON.parse(savedKitchen);
-            if(Array.isArray(parsed) && parsed.length > 0) {
-                stockData.kitchen = parsed;
-                localFound = true;
+    } catch(e) {}
+    return null;
+}
+
+async function fetchCloudTab(url) {
+    try {
+        const res = await fetch(url + '?t=' + Date.now(), { cache: 'no-store' });
+        if (res.ok) {
+            const data = await res.json();
+            if (data.items && Array.isArray(data.items) && data.items.length > 0) {
+                return { items: data.items, savedAt: new Date(data.savedAt || 0).getTime() };
             }
-        } catch (e) { }
+        }
+    } catch (e) {}
+    return null;
+}
+
+function writeLocal(key, items, savedAt) {
+    localStorage.setItem(key, JSON.stringify({ items, savedAt }));
+}
+
+async function pushToCloud(url, items, savedAt) {
+    const payload = { items, savedAt };
+    try {
+        await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        }).catch(() => {});
+        return payload;
+    } catch(e) {}
+    return null;
+}
+
+async function initStockData() {
+    let oldKitchen = await readLocalTab('lokalin_kitchen_stock_data');
+    let oldBar = await readLocalTab('lokalin_bar_stock_data_v2');
+
+    const [cloudKitchen, cloudBar] = await Promise.all([
+        fetchCloudTab('/api/stock/data_kitchen'),
+        fetchCloudTab('/api/stock/data_bar')
+    ]);
+
+    if (cloudKitchen && cloudKitchen.savedAt > (oldKitchen ? oldKitchen.savedAt : 0)) {
+        stockData.kitchen = cloudKitchen.items;
+        writeLocal('lokalin_kitchen_stock_data', cloudKitchen.items, new Date(cloudKitchen.savedAt).toISOString());
+    } else if (oldKitchen) {
+        stockData.kitchen = oldKitchen.items;
+        pushToCloud('/api/stock/data_kitchen', oldKitchen.items, new Date(oldKitchen.savedAt).toISOString());
     }
-    const savedBar = localStorage.getItem('lokalin_bar_stock_data_v2');
-    if (savedBar) {
+
+    if (cloudBar && cloudBar.savedAt > (oldBar ? oldBar.savedAt : 0)) {
+        stockData.bar = cloudBar.items;
+        writeLocal('lokalin_bar_stock_data_v2', cloudBar.items, new Date(cloudBar.savedAt).toISOString());
+    } else if (oldBar) {
+        stockData.bar = oldBar.items;
+        pushToCloud('/api/stock/data_bar', oldBar.items, new Date(oldBar.savedAt).toISOString());
+    }
+
+    // Try fallback migration from old /api/stock/data if both are empty
+    if (!cloudKitchen && !oldKitchen && !cloudBar && !oldBar) {
         try {
-            const parsed = JSON.parse(savedBar);
-            if(Array.isArray(parsed) && parsed.length > 0) {
-                stockData.bar = parsed;
-                localFound = true;
+            const res = await fetch('/api/stock/data');
+            if (res.ok) {
+                const old = await res.json();
+                if (old.kitchen && old.kitchen.length > 0) {
+                    stockData.kitchen = old.kitchen;
+                    writeLocal('lokalin_kitchen_stock_data', old.kitchen, new Date().toISOString());
+                }
+                if (old.bar && old.bar.length > 0) {
+                    stockData.bar = old.bar;
+                    writeLocal('lokalin_bar_stock_data_v2', old.bar, new Date().toISOString());
+                }
             }
-        } catch (e) { }
+        } catch(e) {}
     }
-    
-    // If we loaded from local, push it to cloud immediately to migrate!
-    if (localFound) {
-        saveData(); 
-    }
+
     renderTable();
 }
 
@@ -127,22 +171,21 @@ const viewHistoryBtn = document.getElementById('viewHistoryBtn');
 // Utility to save to local storage and sync to cloud
 let syncTimeout = null;
 function saveData() {
-    if (currentTab === 'kitchen') {
-        localStorage.setItem('lokalin_kitchen_stock_data', JSON.stringify(stockData.kitchen));
-    } else {
-        localStorage.setItem('lokalin_bar_stock_data_v2', JSON.stringify(stockData.bar));
-    }
+    const tab = currentTab;
+    const savedAt = new Date().toISOString();
+    const items = tab === 'kitchen' ? stockData.kitchen : stockData.bar;
+    const localKey = tab === 'kitchen' ? 'lokalin_kitchen_stock_data' : 'lokalin_bar_stock_data_v2';
     
-    // Sync to cloud (debounced 2 seconds to avoid spam)
+    // Write to localStorage with timestamp
+    writeLocal(localKey, items, savedAt);
+
+    // Sync to cloud (debounced)
     clearTimeout(syncTimeout);
     syncTimeout = setTimeout(async () => {
         try {
-            await fetch('/api/stock/data', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(stockData)
-            });
-            document.getElementById('add-title').innerHTML = currentTab === 'kitchen' 
+            const url = tab === 'kitchen' ? '/api/stock/data_kitchen' : '/api/stock/data_bar';
+            await pushToCloud(url, items, savedAt);
+            document.getElementById('add-title').innerHTML = tab === 'kitchen' 
                 ? '🍳 Add Menu (Synced ☁️)' 
                 : '🍹 Add Menu (Synced ☁️)';
         } catch(e) { console.error('Cloud sync failed'); }
@@ -154,18 +197,14 @@ async function flushSave() {
     clearTimeout(syncTimeout);
     syncTimeout = null;
 
-    // Save both tabs to localStorage
-    localStorage.setItem('lokalin_kitchen_stock_data', JSON.stringify(stockData.kitchen));
-    localStorage.setItem('lokalin_bar_stock_data_v2', JSON.stringify(stockData.bar));
+    const savedAt = new Date().toISOString();
+    writeLocal('lokalin_kitchen_stock_data', stockData.kitchen, savedAt);
+    writeLocal('lokalin_bar_stock_data_v2', stockData.bar, savedAt);
 
-    // Push latest data to cloud immediately
-    try {
-        await fetch('/api/stock/data', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(stockData)
-        });
-    } catch(e) { console.error('flushSave: Cloud sync failed', e); }
+    await Promise.all([
+        pushToCloud('/api/stock/data_kitchen', stockData.kitchen, savedAt),
+        pushToCloud('/api/stock/data_bar', stockData.bar, savedAt)
+    ]);
 }
 
 function calculateFinalStock(item) {
@@ -177,17 +216,17 @@ function calculateExpectedBar(item) {
 }
 
 // Tab Switching
-window.switchStockTab = function(tab) {
+window.switchStockTab = function (tab) {
     currentTab = tab;
     document.querySelectorAll(".tab-btn").forEach((btn, i) => {
         btn.classList.toggle("active", (i === 0 && tab === "kitchen") || (i === 1 && tab === "bar"));
     });
-    
+
     // Update title
-    document.getElementById('add-title').innerHTML = tab === 'kitchen' 
-        ? '🍳 Add Menu to Kitchen Stock' 
+    document.getElementById('add-title').innerHTML = tab === 'kitchen'
+        ? '🍳 Add Menu to Kitchen Stock'
         : '🍹 Add Menu to Bar Stock';
-        
+
     renderTable();
 }
 
@@ -220,7 +259,7 @@ function renderTable() {
 
     tableBody.innerHTML = '';
     const currentData = stockData[currentTab];
-    
+
     if (currentData.length === 0) {
         tableBody.innerHTML = `<tr><td colspan="7" class="text-center" style="color:var(--text-muted); padding:24px;">No items in ${currentTab} stock yet.</td></tr>`;
     }
@@ -229,7 +268,7 @@ function renderTable() {
         let barBalanceValue = item.spoil === "" || item.spoil === null || item.spoil === undefined ? "" : item.spoil;
         const expectedBar = calculateExpectedBar(item);
         const finalStock = currentTab === 'bar' ? (barBalanceValue === "" ? expectedBar : barBalanceValue) : calculateFinalStock(item);
-        
+
         let stockClass = 'stock-normal';
         if (finalStock < 0) {
             stockClass = 'stock-danger';
@@ -366,14 +405,14 @@ function updateRowUI(index) {
     let barBalanceValue = item.spoil === "" || item.spoil === null || item.spoil === undefined ? "" : item.spoil;
     const expectedBar = calculateExpectedBar(item);
     const finalStock = currentTab === 'bar' ? expectedBar : calculateFinalStock(item);
-    
+
     const row = tableBody.querySelectorAll('tr')[index];
-    if (!row) return; 
-    
+    if (!row) return;
+
     const finalStockBadge = row.querySelector('.stock-akhir-badge');
     if (finalStockBadge) {
         finalStockBadge.textContent = finalStock;
-        
+
         finalStockBadge.className = 'stock-akhir-badge';
         if (finalStock < 0) {
             finalStockBadge.classList.add('stock-danger');
@@ -395,7 +434,14 @@ function updateRowUI(index) {
 function checkAllAlerts() {
     alertContainer.innerHTML = '';
     stockData[currentTab].forEach(item => {
-        const finalStock = calculateFinalStock(item);
+        let finalStock;
+        if (currentTab === 'bar') {
+            const expectedBar = calculateExpectedBar(item);
+            finalStock = (item.spoil === '' || item.spoil === null || item.spoil === undefined) ? expectedBar : item.spoil;
+        } else {
+            finalStock = calculateFinalStock(item);
+        }
+
         if (finalStock < 0) {
             const alertDiv = document.createElement('div');
             alertDiv.className = 'alert-banner';
@@ -412,16 +458,16 @@ function attachInputListeners() {
     const handleInput = (e, field) => {
         let valStr = e.target.value;
         let value = parseInt(valStr);
-        
+
         if (isNaN(value) || value < 0) {
             if (valStr === "") {
-                value = ""; 
+                value = "";
             } else {
                 value = 0;
                 e.target.value = 0;
             }
         }
-        
+
         const index = e.target.getAttribute('data-index');
         stockData[currentTab][index][field] = value;
         saveData();
@@ -459,28 +505,28 @@ function attachInputListeners() {
     document.querySelectorAll('.delete-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
             const index = e.currentTarget.getAttribute('data-index');
-            if(confirm(`Are you sure you want to delete ${stockData[currentTab][index].name}?`)) {
+            if (confirm(`Are you sure you want to delete ${stockData[currentTab][index].name}?`)) {
                 stockData[currentTab].splice(index, 1);
                 saveData();
-                renderTable(); 
+                renderTable();
             }
         });
     });
 }
 
 // Add Form Handlers
-window.addStockItem = function() {
+window.addStockItem = function () {
     const nameInput = document.getElementById('inp-name');
     const initialInput = document.getElementById('inp-initial');
-    
+
     const name = nameInput.value.trim();
     const initial = parseInt(initialInput.value) || 0;
-    
+
     if (!name) {
         alert("Menu name cannot be empty.");
         return;
     }
-    
+
     stockData[currentTab].push({
         id: Date.now(),
         name: name,
@@ -489,28 +535,28 @@ window.addStockItem = function() {
         out: 0,
         spoil: 0
     });
-    
+
     saveData();
     renderTable();
     clearForm();
 };
 
-window.clearForm = function() {
+window.clearForm = function () {
     document.getElementById('inp-name').value = '';
     document.getElementById('inp-initial').value = '0';
 };
 
 // Export Excel Logic
-window.openExportModal = function() {
+window.openExportModal = function () {
     document.getElementById('exportModal').classList.add('show');
     toggleExportInputs();
 }
 
-window.closeExportModal = function() {
+window.closeExportModal = function () {
     document.getElementById('exportModal').classList.remove('show');
 }
 
-window.toggleExportInputs = function() {
+window.toggleExportInputs = function () {
     const val = document.getElementById('export-type').value;
     document.getElementById('export-date-group').style.display = (val === 'harian') ? 'block' : 'none';
     document.getElementById('export-month-group').style.display = (val === 'bulanan') ? 'block' : 'none';
@@ -520,17 +566,17 @@ function parseLocaleDate(dateStr) {
     // Basic parser for "Selasa, 26 Mei 2026 pukul 01.10"
     try {
         const parts = dateStr.replace(' pukul ', ' ').replace(',', '').split(' ');
-        if(parts.length < 5) return null;
+        if (parts.length < 5) return null;
         // Parts: [Selasa, 26, Mei, 2026, 01.10]
         const day = parts[1].padStart(2, '0');
         const monthNames = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
         let month = (monthNames.indexOf(parts[2]) + 1).toString().padStart(2, '0');
         const year = parts[3];
         return `${year}-${month}-${day}`;
-    } catch(e) { return null; }
+    } catch (e) { return null; }
 }
 
-window.processExportExcel = async function() {
+window.processExportExcel = async function () {
     const type = document.getElementById('export-type').value;
     const history = await getHistory();
     const currentData = stockData[currentTab];
@@ -547,14 +593,14 @@ window.processExportExcel = async function() {
             "Spoil / Physical Balance": currentTab === 'bar' && (item.spoil === "" || item.spoil == null) ? calculateExpectedBar(item) : item.spoil,
             "Final / Used": currentTab === 'bar' ? calculateExpectedBar(item) : calculateFinalStock(item)
         }));
-    } 
+    }
     else if (type === 'harian') {
         const dateInput = document.getElementById('export-date').value; // YYYY-MM-DD
         if (!dateInput) return alert("Please select a date first!");
-        
+
         let found = history.filter(h => parseLocaleDate(h.date) === dateInput);
         if (found.length === 0) return alert("No recap data for that date.");
-        
+
         title = `Daily Report ${dateInput} - ${currentTab.toUpperCase()}`;
         found.forEach(h => {
             h.items.forEach(item => {
@@ -573,13 +619,13 @@ window.processExportExcel = async function() {
     else if (type === 'bulanan') {
         const monthInput = document.getElementById('export-month').value; // YYYY-MM
         if (!monthInput) return alert("Please select a month first!");
-        
+
         let found = history.filter(h => {
             let parsed = parseLocaleDate(h.date);
             return parsed && parsed.startsWith(monthInput);
         });
         if (found.length === 0) return alert("No recap data for that month.");
-        
+
         title = `Monthly Report ${monthInput} - ${currentTab.toUpperCase()}`;
         found.forEach(h => {
             h.items.forEach(item => {
@@ -618,7 +664,7 @@ window.processExportExcel = async function() {
     const ws = XLSX.utils.json_to_sheet(dataToExport);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Stock Report");
-    
+
     // Download
     XLSX.writeFile(wb, `${title}.xlsx`);
     closeExportModal();
@@ -639,7 +685,7 @@ async function getHistory() {
             const cloudData = await res.json();
             if (Array.isArray(cloudData) && cloudData.length > 0) return cloudData;
         }
-    } catch(e) {}
+    } catch (e) { }
     // Fallback to local storage only (no migrate/save here to avoid race conditions)
     return getHistoryLocal();
 }
@@ -653,7 +699,7 @@ async function saveHistory(historyArray) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(historyArray)
         });
-    } catch(e) {}
+    } catch (e) { }
 }
 
 closeDayBtn.addEventListener('click', async () => {
@@ -668,7 +714,7 @@ closeDayBtn.addEventListener('click', async () => {
 
     const history = await getHistory();
     const todayStr = new Date().toLocaleString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
-    
+
     const snapshot = stockData[currentTab].map(item => {
         const expectedBar = calculateExpectedBar(item);
         const barBalanceNotSet = currentTab === 'bar' && (item.spoil === "" || item.spoil == null || item.spoil === 0);
@@ -703,8 +749,12 @@ closeDayBtn.addEventListener('click', async () => {
             spoil: currentTab === 'bar' ? "" : 0
         };
     });
-    
-    saveData();
+
+    const resetSavedAt = new Date().toISOString();
+    const localKey = currentTab === 'kitchen' ? 'lokalin_kitchen_stock_data' : 'lokalin_bar_stock_data_v2';
+    const cloudUrl = currentTab === 'kitchen' ? '/api/stock/data_kitchen' : '/api/stock/data_bar';
+    writeLocal(localKey, stockData[currentTab], resetSavedAt);
+    await pushToCloud(cloudUrl, stockData[currentTab], resetSavedAt);
     renderTable();
     closeDayBtn.disabled = false;
     closeDayBtn.innerHTML = "Close Day & Save Recap";
@@ -712,8 +762,8 @@ closeDayBtn.addEventListener('click', async () => {
 });
 
 // History Modal Logic
-window.clearHistory = async function() {
-    if(confirm(`Are you sure you want to delete ALL recap history for ${currentTab.toUpperCase()}? Deleted data cannot be recovered.`)) {
+window.clearHistory = async function () {
+    if (confirm(`Are you sure you want to delete ALL recap history for ${currentTab.toUpperCase()}? Deleted data cannot be recovered.`)) {
         const key = currentTab === 'kitchen' ? 'lokalin_kitchen_stock_history' : 'lokalin_bar_stock_history';
         localStorage.removeItem(key);
         await saveHistory([]);
@@ -724,7 +774,7 @@ window.clearHistory = async function() {
 }
 
 // Delete a single daily recap entry by index
-window.deleteHistoryEntry = async function(index) {
+window.deleteHistoryEntry = async function (index) {
     const history = await getHistory();
     if (index < 0 || index >= history.length) return;
     const entryDate = history[index].date;
@@ -735,14 +785,14 @@ window.deleteHistoryEntry = async function(index) {
     viewHistoryBtn.click();
 }
 
-window.closeHistoryModal = function() {
+window.closeHistoryModal = function () {
     document.getElementById('historyModal').classList.remove('show');
 }
 
 viewHistoryBtn.addEventListener('click', async () => {
     const history = await getHistory();
     const container = document.getElementById('historyContainer');
-    
+
     // Set Modal Title based on tab
     document.querySelector('.checkout-title').innerHTML = `🗓️ Recap History ${currentTab.toUpperCase()}`;
 
@@ -780,12 +830,12 @@ viewHistoryBtn.addEventListener('click', async () => {
                                 <tr>
                                     <td style="font-weight:600; color:var(--text-primary);">${item.name}</td>
                                     <td style="color:var(--text-secondary);">${item.initial}</td>
-                                    <td style="color:var(--green)">${item.in > 0 ? '+'+item.in : 0}</td>
+                                    <td style="color:var(--green)">${item.in > 0 ? '+' + item.in : 0}</td>
                                     ${currentTab === 'bar' ? `
-                                    <td style="color:var(--accent)">${item.out > 0 ? '-'+item.out : 0}</td>
+                                    <td style="color:var(--accent)">${item.out > 0 ? '-' + item.out : 0}</td>
                                     <td style="font-weight:700;">${item.final}</td>
                                     ` : `
-                                    <td style="color:var(--accent)">${item.out > 0 ? '-'+item.out : 0}</td>
+                                    <td style="color:var(--accent)">${item.out > 0 ? '-' + item.out : 0}</td>
                                     <td style="color:#fc8181">${item.spoil > 0 ? item.spoil : 0}</td>
                                     <td style="color:var(--text-primary); font-weight:700;">${item.final}</td>
                                     `}
@@ -797,7 +847,7 @@ viewHistoryBtn.addEventListener('click', async () => {
             </div>
         `).join('');
     }
-    
+
     document.getElementById('historyModal').classList.add('show');
 });
 
@@ -810,26 +860,43 @@ window.refreshStockData = async function() {
     btn.innerHTML = '⏳ Loading...';
 
     try {
-        const res = await fetch('/api/stock/data');
-        if (res.ok) {
-            const cloudData = await res.json();
-            if (cloudData && Array.isArray(cloudData.kitchen) && Array.isArray(cloudData.bar)) {
-                stockData = cloudData;
-                localStorage.setItem('lokalin_kitchen_stock_data', JSON.stringify(stockData.kitchen));
-                localStorage.setItem('lokalin_bar_stock_data_v2', JSON.stringify(stockData.bar));
-                renderTable();
-                btn.innerHTML = '✅ Success!';
-                btn.style.color = 'var(--green)';
-                setTimeout(() => {
-                    btn.innerHTML = '🔄 Refresh Data';
-                    btn.style.color = '';
-                    btn.disabled = false;
-                }, 2000);
-                return;
+        const [resK, resB] = await Promise.all([
+            fetch('/api/stock/data_kitchen?t=' + Date.now(), { cache: 'no-store' }),
+            fetch('/api/stock/data_bar?t=' + Date.now(), { cache: 'no-store' })
+        ]);
+
+        let success = false;
+        
+        if (resK.ok) {
+            const cloudKitchen = await resK.json();
+            const kitchenItems = Array.isArray(cloudKitchen) ? cloudKitchen : (cloudKitchen?.items || null);
+            if (Array.isArray(kitchenItems) && kitchenItems.length > 0) {
+                stockData.kitchen = kitchenItems;
+                writeLocal('lokalin_kitchen_stock_data', kitchenItems, cloudKitchen?.savedAt || new Date().toISOString());
+                success = true;
             }
         }
-        throw new Error('Invalid data from cloud');
-    } catch(e) {
+        if (resB.ok) {
+            const cloudBar = await resB.json();
+            const barItems = Array.isArray(cloudBar) ? cloudBar : (cloudBar?.items || null);
+            if (Array.isArray(barItems) && barItems.length > 0) {
+                stockData.bar = barItems;
+                writeLocal('lokalin_bar_stock_data_v2', barItems, cloudBar?.savedAt || new Date().toISOString());
+                success = true;
+            }
+        }
+
+        if (!success) throw new Error('No valid data from cloud');
+
+        renderTable();
+        btn.innerHTML = '✅ Success!';
+        btn.style.color = 'var(--green)';
+        setTimeout(() => {
+            btn.innerHTML = '🔄 Refresh Data';
+            btn.style.color = '';
+            btn.disabled = false;
+        }, 2000);
+    } catch (e) {
         btn.innerHTML = '❌ Failed';
         btn.style.color = '#fc8181';
         setTimeout(() => {
@@ -845,22 +912,4 @@ initStockData();
 
 if (saveDraftBtn) {
     saveDraftBtn.addEventListener('click', async () => {
-        const originalText = saveDraftBtn.innerHTML;
-        saveDraftBtn.innerHTML = "☁️ Saving...";
-        saveDraftBtn.disabled = true;
-
-        await flushSave();
-
-        // Show temporary toast feedback
-        saveDraftBtn.innerHTML = "✅ Saved!";
-        saveDraftBtn.style.background = "var(--green)";
-        saveDraftBtn.style.color = "#fff";
-        saveDraftBtn.disabled = false;
-        
-        setTimeout(() => {
-            saveDraftBtn.innerHTML = originalText;
-            saveDraftBtn.style.background = "transparent";
-            saveDraftBtn.style.color = "var(--accent)";
-        }, 2000);
-    });
-}
+        const originalText = saveDraftBtn.innerHTML;

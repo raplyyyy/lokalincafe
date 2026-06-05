@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Bar Dashboard — Lokalin</title>
-  <meta name="description" content="Dashboard minuman real-time untuk bar." />
+  <meta name="description" content="Real-time drinks dashboard for the bar." />
   <link rel="stylesheet" href="/style.css" />
 </head>
 <body>
@@ -20,28 +20,28 @@
     </div>
   </div>
   <div class="bar-header-right">
-    <div class="order-counter"><span id="active-count">0</span> aktif</div>
+    <div class="order-counter"><span id="active-count">0</span> active</div>
     <div class="ws-status">
       <div class="ws-dot" id="ws-dot"></div>
-      <span class="ws-label" id="ws-label">Menghubungkan…</span>
+      <span class="ws-label" id="ws-label">Connecting…</span>
     </div>
   </div>
 </div>
 <div class="dashboard-summary">
   <div class="summary-card">
-    <div class="summary-label">Pesanan Aktif</div>
+    <div class="summary-label">Active Orders</div>
     <div class="summary-value" id="active-count-summary">0</div>
   </div>
   <div class="summary-card">
-    <div class="summary-label">Menunggu</div>
+    <div class="summary-label">Pending</div>
     <div class="summary-value" id="count-pending-summary">0</div>
   </div>
   <div class="summary-card">
-    <div class="summary-label">Diproses</div>
+    <div class="summary-label">In Progress</div>
     <div class="summary-value" id="count-progress-summary">0</div>
   </div>
   <div class="summary-card">
-    <div class="summary-label">Siap</div>
+    <div class="summary-label">Ready</div>
     <div class="summary-value" id="count-ready-summary">0</div>
   </div>
 </div>
@@ -62,7 +62,7 @@
   <div class="kanban-col" id="col-progress">
     <div class="col-header">
       <span>⚡</span>
-      <h3 class="status-label status-progress">Diproses</h3>
+      <h3 class="status-label status-progress">In Progress</h3>
       <span class="col-count" id="count-progress">0</span>
     </div>
     <div class="col-cards" id="cards-progress"></div>
@@ -72,7 +72,7 @@
   <div class="kanban-col" id="col-ready">
     <div class="col-header">
       <span>✅</span>
-      <h3 class="status-label status-ready">Siap</h3>
+      <h3 class="status-label status-ready">Ready</h3>
       <span class="col-count" id="count-ready">0</span>
     </div>
     <div class="col-cards" id="cards-ready"></div>
@@ -85,9 +85,9 @@
     <div class="restaurant-name">🍽️ Lokalin</div>
     <button class="close-btn" onclick="toggleSidebar()">✕</button>
   </div>
-  <a href="/order?table=5" class="sidebar-link">📱 Pesan (Customer)</a>
+  <a href="/order?table=5" class="sidebar-link">📱 Order (Customer)</a>
   <a href="/bar" class="sidebar-link">🍹 Bar Dashboard</a>
-  <a href="/cashier" class="sidebar-link">🧾 Kasir</a>
+  <a href="/cashier" class="sidebar-link">🧾 Cashier</a>
   <a href="/admin" class="sidebar-link">⚙️ Admin Menu</a>
 </div>
 

@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Bar & Kasir — Lokalin</title>
-  <meta name="description" content="Dashboard terpadu untuk bar dan kasir." />
+  <title>Bar & Cashier — Lokalin</title>
+  <meta name="description" content="Integrated dashboard for bar and cashier." />
   <link rel="stylesheet" href="/style.css?v=13" />
   <script src="/pin.js"></script>
 </head>
@@ -16,10 +16,10 @@
     <button class="menu-toggle-btn" onclick="toggleSidebar()">☰</button>
     <span class="page-icon">👩‍🍳</span>
     <div>
-      <div class="page-title">Bar & Kasir</div>
+      <div class="page-title">Bar & Cashier</div>
       <div class="ws-indicator">
         <div class="ws-dot" id="ws-dot"></div>
-        <span id="ws-label">Menghubungkan…</span>
+        <span id="ws-label">Connecting…</span>
       </div>
     </div>
   </div>
@@ -33,13 +33,13 @@
 </div>
 
 <div class="tabs-wrapper">
-  <button class="tab-btn active" id="tab-cashier" onclick="switchTab('cashier')">🧾 Kasir & Pembayaran</button>
+  <button class="tab-btn active" id="tab-cashier" onclick="switchTab('cashier')">🧾 Cashier & Payment</button>
   <button class="tab-btn" id="tab-bar" onclick="switchTab('bar')">🍹 Bar</button>
   <button class="tab-btn" id="tab-stock" onclick="switchTab('stock')">📦 Stock</button>
 </div>
 <div class="dashboard-summary">
   <div class="summary-card">
-    <div class="summary-label">Pesanan Aktif</div>
+    <div class="summary-label">Active Orders</div>
     <div class="summary-value" id="order-count">0</div>
   </div>
   <div class="summary-card">
@@ -51,7 +51,7 @@
 <!-- ── Cashier View ── -->
 <div id="view-cashier" class="view-section active">
   <div class="section-hint">
-    <span id="order-count-label">0</span> pesanan aktif
+    <span id="order-count-label">0</span> active orders
   </div>
   <div id="order-list" class="order-list">
     <div class="empty-state"><div class="spinner"></div></div>
@@ -69,7 +69,7 @@
 <!-- ── Bar View ── -->
 <div id="view-bar" class="view-section">
   <div class="section-hint">
-    <span id="active-count">0</span> minuman perlu dibuat
+    <span id="active-count">0</span> drinks need to be made
   </div>
   <div id="cards-bar">
     <div class="empty-state"><div class="spinner"></div></div>
@@ -80,16 +80,16 @@
 <div id="detail-overlay" onclick="closeDetail()"></div>
 <div id="detail-panel">
   <div class="panel-handle"></div>
-  <div class="panel-table" id="panel-table">Meja —</div>
+  <div class="panel-table" id="panel-table">Table —</div>
   <div class="panel-time" id="panel-time"></div>
 
   <div class="item-section" id="section-food">
-    <div class="item-section-title">🍽️ Makanan</div>
+    <div class="item-section-title">🍽️ Food</div>
     <div id="panel-food-items"></div>
   </div>
 
   <div class="item-section" id="section-drinks">
-    <div class="item-section-title">🍹 Minuman</div>
+    <div class="item-section-title">🍹 Drinks</div>
     <div id="panel-drink-items"></div>
     <div class="drink-status-row">
         <span class="status-note">Status bar:</span>
@@ -97,7 +97,7 @@
     </div>
   </div>
   <div id="panel-note" class="panel-note">
-    <div class="panel-note-title">📝 Catatan Pesanan</div>
+    <div class="panel-note-title">📝 Order Notes</div>
     <div id="panel-note-text" class="panel-note-text"></div>
   </div>
 
@@ -107,17 +107,17 @@
       <span id="panel-subtotal" class="panel-amount">Rp 0</span>
     </div>
     <div class="panel-total-row">
-      <span class="label">Pajak (11%)</span>
+      <span class="label">Tax (11%)</span>
       <span id="panel-tax" class="panel-amount panel-tax">Rp 0</span>
     </div>
     <div class="panel-total-row panel-total-final">
-      <span class="label">Total Bayar</span>
+      <span class="label">Total Payment</span>
       <span class="total-amount" id="panel-total">Rp 0</span>
     </div>
   </div>
 
   <button class="btn btn-success" id="pay-btn" onclick="markPaid()">
-    ✅ Lunas — Tandai Sudah Bayar
+    ✅ Paid — Mark as Paid
   </button>
 </div>
 
@@ -125,7 +125,7 @@
 <div id="sidebar-nav">
   <div class="sidebar-header">
     <div class="restaurant-name">🍽️ Lokalin</div>
-    <button class="close-btn" onclick="toggleSidebar()" aria-label="Tutup">
+    <button class="close-btn" onclick="toggleSidebar()" aria-label="Close">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
     </button>
   </div>
@@ -135,11 +135,11 @@
   </a>
   <a href="/order?table=5" class="sidebar-link">
     <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
-    Pesan (Customer)
+    Order (Customer)
   </a>
   <a href="/cashier" class="sidebar-link" style="color:#fff;">
     <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
-    Bar &amp; Kasir
+    Bar &amp; Cashier
   </a>
   <a href="/admin" class="sidebar-link">
     <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
@@ -147,11 +147,11 @@
   </a>
   <a href="/stock" class="sidebar-link">
     <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
-    Manajemen Stok
+    Stock Management
   </a>
   <a href="/sales" class="sidebar-link">
     <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
-    Laporan Penjualan
+    Sales Report
   </a>
 </div>
 

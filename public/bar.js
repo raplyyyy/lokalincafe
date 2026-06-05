@@ -37,7 +37,7 @@ function connectWS() {
 
 function setWsStatus(connected) {
   document.getElementById("ws-dot").classList.toggle("connected", connected);
-  document.getElementById("ws-label").textContent = connected ? "Terhubung" : "Terputus…";
+  document.getElementById("ws-label").textContent = connected ? "Connected" : "Disconnected…";
 }
 
 function handleMessage(msg) {
@@ -120,17 +120,17 @@ function cardHTML(order, status) {
 
   let btn = "";
   if (status === "pending") {
-    btn = `<button class="status-btn to-progress" onclick="updateStatus(${order.id}, 'in-progress')">⚡ Mulai Buat</button>`;
+    btn = `<button class="status-btn to-progress" onclick="updateStatus(${order.id}, 'in-progress')">⚡ Start Making</button>`;
   } else if (status === "in-progress") {
-    btn = `<button class="status-btn to-ready" onclick="updateStatus(${order.id}, 'ready')">✅ Siap Disajikan</button>`;
+    btn = `<button class="status-btn to-ready" onclick="updateStatus(${order.id}, 'ready')">✅ Ready to Serve</button>`;
   } else {
-    btn = `<button class="status-btn done" disabled>✔ Selesai</button>`;
+    btn = `<button class="status-btn done" disabled>✔ Done</button>`;
   }
 
   return `
     <div class="bar-card" id="bar-card-${order.id}">
       <div class="card-top">
-        <span class="table-num">Meja ${order.tableNumber}</span>
+        <span class="table-num">Table ${order.tableNumber}</span>
         <span class="card-time">🕐 ${time}</span>
       </div>
       <div class="drink-list">${drinks}</div>
@@ -152,25 +152,53 @@ async function updateStatus(orderId, newStatus) {
       renderAll();
     }
   } catch (err) {
-    alert("❌ Gagal update status. Cek koneksi.");
+    alert("❌ Failed to update status. Check connection.");
   }
 }
 
 // ─── Notification Sound ───────────────────────────────────────────────────────
+let audioUnlocked = false;
+
+function initAudio() {
+  if (audioUnlocked) return;
+  let audioEl = document.getElementById('notifAudio');
+  if (!audioEl) {
+    audioEl = document.createElement('audio');
+    audioEl.id = 'notifAudio';
+    audioEl.src = '/notif.wav';
+    audioEl.preload = 'auto';
+    document.body.appendChild(audioEl);
+  }
+  
+  // Unlock audio for iOS Safari
+  audioEl.volume = 0; // mute during unlock
+  audioEl.play().then(() => {
+    audioEl.pause();
+    audioEl.currentTime = 0;
+    audioEl.volume = 1; // restore volume
+    audioUnlocked = true;
+  }).catch(e => console.warn('Audio unlock failed:', e));
+}
+
+// Browser mewajibkan interaksi user untuk bisa play suara
+window.addEventListener('click', initAudio, { once: true });
+window.addEventListener('touchstart', initAudio, { once: true });
+
 function playNotif() {
   try {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    osc.frequency.setValueAtTime(880, ctx.currentTime);
-    osc.frequency.setValueAtTime(1100, ctx.currentTime + 0.1);
-    gain.gain.setValueAtTime(0.3, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
-    osc.start(ctx.currentTime);
-    osc.stop(ctx.currentTime + 0.4);
-  } catch {}
+    let audioEl = document.getElementById('notifAudio');
+    if (!audioEl) {
+      initAudio();
+      audioEl = document.getElementById('notifAudio');
+    }
+    if (audioEl) {
+      audioEl.volume = 1;
+      audioEl.currentTime = 0;
+      audioEl.play().catch(e => console.warn('Failed to play notif:', e));
+    }
+  } catch (e) {
+    console.warn('Gagal putar notif:', e);
+  }
 }
 
 function toggleSidebar() {

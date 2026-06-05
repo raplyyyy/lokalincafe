@@ -117,7 +117,7 @@ function connectWS() {
   
   ws.addEventListener("open", () => {
     document.getElementById("ws-dot").classList.add("connected");
-    document.getElementById("ws-label").textContent = "Terhubung";
+    document.getElementById("ws-label").textContent = "Connected";
   });
 
   ws.addEventListener("message", (e) => {
@@ -128,8 +128,8 @@ function connectWS() {
           playNotif();
           if ("Notification" in window && Notification.permission === "granted") {
             const meja = msg.order ? msg.order.tableNumber : "?";
-            new Notification("Pesanan Baru!", { 
-              body: `Ada pesanan baru dari Meja ${meja}. Segera cek halaman Kasir.`,
+            new Notification("New Order!", { 
+              body: `New order from Table ${meja}. Check the Cashier page immediately.`,
               icon: "https://cdn-icons-png.flaticon.com/512/3566/3566083.png" 
             });
           }
@@ -141,13 +141,13 @@ function connectWS() {
 
   ws.addEventListener("close", () => {
     document.getElementById("ws-dot").classList.remove("connected");
-    document.getElementById("ws-label").textContent = "Terputus…";
+    document.getElementById("ws-label").textContent = "Disconnected…";
     setTimeout(connectWS, 3000);
   });
   
   ws.addEventListener("error", () => {
     document.getElementById("ws-dot").classList.remove("connected");
-    document.getElementById("ws-label").textContent = "Terputus…";
+    document.getElementById("ws-label").textContent = "Disconnected…";
   });
 }
 
@@ -162,7 +162,7 @@ async function loadOrders() {
     renderOrderList();
     renderKanban();
   } catch (err) {
-    showToast("❌ Gagal memuat pesanan");
+    showToast("❌ Failed to load orders");
   } finally {
     btn.classList.remove("spinning");
   }
@@ -179,8 +179,8 @@ function renderOrderList() {
     container.innerHTML = `
       <div class="empty-state">
         <div class="empty-icon">🎉</div>
-        <h3>Tidak ada pesanan aktif</h3>
-        <p>Semua pesanan sudah dibayar</p>
+        <h3>No active orders</h3>
+        <p>All orders have been paid</p>
       </div>`;
     return;
   }
@@ -195,11 +195,11 @@ function renderOrderList() {
     return `
       <div class="order-card" onclick="openDetail(${order.id})" id="order-card-${order.id}">
         <div class="card-table-badge">
-          <span class="label">Meja</span>
+          <span class="label">Table</span>
           <span class="num">${order.tableNumber}</span>
         </div>
         <div class="card-meta">
-          <div class="font-bold" style="font-size:0.95rem">Meja ${order.tableNumber}</div>
+          <div class="font-bold" style="font-size:0.95rem">Table ${order.tableNumber}</div>
           <div class="card-summary">${escHtml(summary)}</div>
           <div class="card-time">🕐 ${date}, ${time}</div>
           ${noteBadge}
@@ -223,7 +223,7 @@ function renderKanban() {
 
   const container = document.getElementById("cards-bar");
   if (drinkOrders.length === 0) {
-    container.innerHTML = `<div style="text-align:center; grid-column: 1 / -1; padding:24px 0;color:var(--text-muted);font-size:0.85rem;">— Tidak ada antrean minuman —</div>`;
+    container.innerHTML = `<div style="text-align:center; grid-column: 1 / -1; padding:24px 0;color:var(--text-muted);font-size:0.85rem;">— No drink queue —</div>`;
     return;
   }
 
@@ -241,14 +241,14 @@ function cardHTML(order) {
       <span class="dqty">×${d.qty}</span>
     </div>`
   ).join("");
-  const noteBadge = order.note ? `<div style="margin-top:8px; font-size:0.75rem; color:var(--orange); background:var(--bg-base); padding:6px; border-radius:4px; border:1px dashed var(--border-accent);">📝 Catatan: ${escHtml(order.note)}</div>` : '';
+  const noteBadge = order.note ? `<div style="margin-top:8px; font-size:0.75rem; color:var(--orange); background:var(--bg-base); padding:6px; border-radius:4px; border:1px dashed var(--border-accent);">📝 Note: ${escHtml(order.note)}</div>` : '';
 
-  const btn = `<button class="status-btn to-ready" onclick="updateStatus(${order.id}, 'ready', event)">✅ Selesai Dibuat</button>`;
+  const btn = `<button class="status-btn to-ready" onclick="updateStatus(${order.id}, 'ready', event)">✅ Finished Making</button>`;
 
   return `
     <div class="bar-card" id="bar-card-${order.id}">
       <div class="card-top">
-        <span class="table-num">Meja ${order.tableNumber}</span>
+        <span class="table-num">Table ${order.tableNumber}</span>
         <span class="card-time">🕐 ${time}</span>
       </div>
       <div class="drink-list">${drinks}</div>
@@ -272,7 +272,7 @@ async function updateStatus(orderId, newStatus, event) {
       renderKanban();
     }
   } catch (err) {
-    alert("❌ Gagal update status. Cek koneksi.");
+    alert("❌ Failed to update status. Check connection.");
   }
 }
 
@@ -282,10 +282,10 @@ function openDetail(orderId) {
   if (!order) return;
   selectedOrderId = orderId;
 
-  document.getElementById("panel-table").textContent = `Meja ${order.tableNumber}`;
+  document.getElementById("panel-table").textContent = `Table ${order.tableNumber}`;
   const ts = new Date(order.timestamp);
   document.getElementById("panel-time").textContent =
-    `Pesanan masuk: ${ts.toLocaleDateString("id-ID", { day:"2-digit", month:"long", year:"numeric" })} ${ts.toLocaleTimeString("id-ID", {hour:"2-digit",minute:"2-digit"})}`;
+    `Order received: ${ts.toLocaleDateString("en-US", { day:"2-digit", month:"long", year:"numeric" })} ${ts.toLocaleTimeString("en-US", {hour:"2-digit",minute:"2-digit"})}`;
 
   // Food items
   const foodSection = document.getElementById("section-food");
@@ -312,8 +312,8 @@ function openDetail(orderId) {
     const statusEl = document.getElementById("panel-drink-status");
     const statusMap = {
       "pending":     { cls: "badge-pending",  label: "⏳ Pending" },
-      "in-progress": { cls: "badge-progress", label: "⚡ Diproses" },
-      "ready":       { cls: "badge-ready",    label: "✅ Siap" },
+      "in-progress": { cls: "badge-progress", label: "⚡ In Progress" },
+      "ready":       { cls: "badge-ready",    label: "✅ Ready" },
     };
     const s = statusMap[order.drinkStatus] || statusMap["pending"];
     statusEl.className = `badge ${s.cls}`;
@@ -371,7 +371,7 @@ async function markPaid() {
 
   const btn = document.getElementById("pay-btn");
   btn.disabled = true;
-  btn.textContent = "⏳ Memproses…";
+  btn.textContent = "⏳ Processing…";
 
   try {
     const res = await fetch(`/api/orders/${selectedOrderId}/pay`, { method: "PATCH" });
@@ -379,27 +379,37 @@ async function markPaid() {
 
     closeDetail();
     await loadOrders();
-    showToast("✅ Pesanan ditandai lunas!");
+    showToast("✅ Order marked as paid!");
   } catch (err) {
-    showToast("❌ Gagal memperbarui status");
+    showToast("❌ Failed to update status");
   } finally {
     btn.disabled = false;
-    btn.textContent = "✅ Lunas — Tandai Sudah Bayar";
+    btn.textContent = "✅ Paid — Mark as Paid";
   }
 }
 
 // ─── Notification Sound ───────────────────────────────────────────────────────
-let audioCtx = null;
+let audioUnlocked = false;
 
 function initAudio() {
-  try {
-    if (!audioCtx) {
-      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    }
-    if (audioCtx.state === 'suspended') {
-      audioCtx.resume();
-    }
-  } catch(e) {}
+  if (audioUnlocked) return;
+  let audioEl = document.getElementById('notifAudio');
+  if (!audioEl) {
+    audioEl = document.createElement('audio');
+    audioEl.id = 'notifAudio';
+    audioEl.src = '/notif.wav';
+    audioEl.preload = 'auto';
+    document.body.appendChild(audioEl);
+  }
+  
+  // Unlock audio for iOS Safari
+  audioEl.volume = 0; // mute during unlock
+  audioEl.play().then(() => {
+    audioEl.pause();
+    audioEl.currentTime = 0;
+    audioEl.volume = 1; // restore volume
+    audioUnlocked = true;
+  }).catch(e => console.warn('Audio unlock failed:', e));
 }
 
 // Browser mewajibkan interaksi user untuk bisa play suara
@@ -408,23 +418,16 @@ window.addEventListener('touchstart', initAudio, { once: true });
 
 function playNotif() {
   try {
-    if (!audioCtx) initAudio();
-    if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
-
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-    osc.connect(gain);
-    gain.connect(audioCtx.destination);
-    
-    osc.type = 'sine'; // Suara lebih halus
-    osc.frequency.setValueAtTime(880, audioCtx.currentTime);
-    osc.frequency.setValueAtTime(1100, audioCtx.currentTime + 0.1);
-    
-    gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.4);
-    
-    osc.start(audioCtx.currentTime);
-    osc.stop(audioCtx.currentTime + 0.4);
+    let audioEl = document.getElementById('notifAudio');
+    if (!audioEl) {
+      initAudio();
+      audioEl = document.getElementById('notifAudio');
+    }
+    if (audioEl) {
+      audioEl.volume = 1;
+      audioEl.currentTime = 0;
+      audioEl.play().catch(e => console.warn('Failed to play notif:', e));
+    }
   } catch (e) {
     console.warn('Gagal putar notif:', e);
   }

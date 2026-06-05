@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Dashboard — Lokalin Café</title>
-  <meta name="description" content="Dashboard utama operasional harian Lokalin Café." />
+  <meta name="description" content="Main daily operational dashboard for Lokalin Café." />
   <link rel="stylesheet" href="/style.css?v=13" />
   <script src="/pin.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -81,7 +81,7 @@
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
     </button>
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
-    <div class="page-title">Dashboard Lokalin</div>
+    <div class="page-title">Lokalin Dashboard</div>
   </div>
   <button class="refresh-btn" onclick="loadAll()" id="refreshTopBtn">
     <svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
@@ -93,34 +93,34 @@
 
   <!-- Greeting -->
   <div class="dash-greeting">
-    <h1 id="greetText">Selamat datang!</h1>
+    <h1 id="greetText">Welcome!</h1>
     <p id="dateText">—</p>
   </div>
 
   <!-- Stat Cards -->
   <div class="stat-grid">
     <div class="stat-card red">
-      <div class="stat-label">Order Hari Ini</div>
+      <div class="stat-label">Today's Orders</div>
       <div class="stat-value accent" id="stat-orders">—</div>
-      <div class="stat-sub">total order masuk</div>
+      <div class="stat-sub">total incoming orders</div>
       <div class="stat-icon"><svg viewBox="0 0 24 24" stroke="var(--accent)" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg></div>
     </div>
     <div class="stat-card green">
-      <div class="stat-label">Omzet Hari Ini</div>
+      <div class="stat-label">Today's Revenue</div>
       <div class="stat-value green" id="stat-revenue">—</div>
-      <div class="stat-sub">dari order berbayar</div>
+      <div class="stat-sub">from paid orders</div>
       <div class="stat-icon"><svg viewBox="0 0 24 24" stroke="var(--green)" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg></div>
     </div>
     <div class="stat-card blue">
-      <div class="stat-label">Order Aktif</div>
+      <div class="stat-label">Active Orders</div>
       <div class="stat-value blue" id="stat-active">—</div>
-      <div class="stat-sub">belum dibayar</div>
+      <div class="stat-sub">unpaid</div>
       <div class="stat-icon"><svg viewBox="0 0 24 24" stroke="var(--blue)" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
     </div>
     <div class="stat-card orange">
-      <div class="stat-label">Stok Kritis</div>
+      <div class="stat-label">Critical Stock</div>
       <div class="stat-value orange" id="stat-critical">—</div>
-      <div class="stat-sub">item ≤ 0</div>
+      <div class="stat-sub">items ≤ 0</div>
       <div class="stat-icon"><svg viewBox="0 0 24 24" stroke="var(--orange)" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
     </div>
   </div>
@@ -129,7 +129,7 @@
   <div class="panel-card" style="margin-bottom:28px;">
     <div class="dash-section-title">
       <svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>
-      Tren Penjualan (7 Hari Terakhir)
+      Sales Trend (Last 7 Days)
     </div>
     <div style="position:relative; height:280px; width:100%;">
       <canvas id="salesChart"></canvas>
@@ -139,20 +139,20 @@
   <!-- Quick Navigation (iPhone App Icon Style) -->
   <div class="dash-section-title">
     <svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
-    Navigasi Cepat
+    Quick Navigation
   </div>
   <div class="nav-grid">
     <a href="/order?table=5" class="nav-card">
       <div class="app-icon-wrap" style="background:linear-gradient(135deg,#FF9F43,#EE5A24);">
         <svg viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
       </div>
-      <span class="nav-label">Order Customer</span>
+      <span class="nav-label">Order (Customer)</span>
     </a>
     <a href="/cashier" class="nav-card">
       <div class="app-icon-wrap" style="background:linear-gradient(135deg,#54D4C8,#17A589);">
         <svg viewBox="0 0 24 24"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
       </div>
-      <span class="nav-label">Bar &amp; Kasir</span>
+      <span class="nav-label">Bar &amp; Cashier</span>
     </a>
     <a href="/admin" class="nav-card">
       <div class="app-icon-wrap" style="background:linear-gradient(135deg,#8E9BAD,#5D6D7E);">
@@ -164,19 +164,19 @@
       <div class="app-icon-wrap" style="background:linear-gradient(135deg,#73C3F9,#1A7DC4);">
         <svg viewBox="0 0 24 24"><line x1="16.5" y1="9.4" x2="7.5" y2="4.21"/><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
       </div>
-      <span class="nav-label">Manajemen Stok</span>
+      <span class="nav-label">Stock Management</span>
     </a>
     <a href="/sales" class="nav-card">
       <div class="app-icon-wrap" style="background:linear-gradient(135deg,#B39DDB,#7B1FA2);">
         <svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
       </div>
-      <span class="nav-label">Lap. Penjualan</span>
+      <span class="nav-label">Sales Report</span>
     </a>
     <a href="/qrcodes.html" class="nav-card">
       <div class="app-icon-wrap" style="background:linear-gradient(135deg,#55EFC4,#00B894);">
         <svg viewBox="0 0 24 24"><rect x="3" y="3" width="5" height="5"/><rect x="16" y="3" width="5" height="5"/><rect x="3" y="16" width="5" height="5"/><path d="M21 16h-3a2 2 0 0 0-2 2v3"/><line x1="21" y1="21" x2="21" y2="21"/><line x1="12" y1="3" x2="12" y2="9"/><path d="M12 15v2"/><path d="M12 21v-2"/></svg>
       </div>
-      <span class="nav-label">QR Code Meja</span>
+      <span class="nav-label">Table QR Code</span>
     </a>
   </div>
 
@@ -185,16 +185,16 @@
     <div class="panel-card">
       <div class="dash-section-title">
         <svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
-        Penjualan Hari Ini
+        Today's Sales
       </div>
-      <div id="sales-today-list"><div style="color:var(--text-muted);font-size:.85rem;text-align:center;padding:20px 0;">Memuat data...</div></div>
+      <div id="sales-today-list"><div style="color:var(--text-muted);font-size:.85rem;text-align:center;padding:20px 0;">Loading data...</div></div>
     </div>
     <div class="panel-card">
       <div class="dash-section-title">
         <svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-        Stok Kritis / Habis
+        Critical / Out of Stock
       </div>
-      <div id="stock-alert-list"><div style="color:var(--text-muted);font-size:.85rem;text-align:center;padding:20px 0;">Memuat data...</div></div>
+      <div id="stock-alert-list"><div style="color:var(--text-muted);font-size:.85rem;text-align:center;padding:20px 0;">Loading data...</div></div>
     </div>
   </div>
 
@@ -203,11 +203,11 @@
     <div class="dash-section-title" style="justify-content:space-between;">
       <span style="display:flex;align-items:center;gap:8px;">
         <svg viewBox="0 0 24 24" style="width:18px;height:18px;stroke:var(--accent);fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-        Order Aktif
+        Active Orders
       </span>
-      <span style="font-size:.75rem;color:var(--text-muted);font-weight:400;">Auto refresh 30 detik</span>
+      <span style="font-size:.75rem;color:var(--text-muted);font-weight:400;">Auto refresh 30s</span>
     </div>
-    <div id="active-orders-list"><div style="color:var(--text-muted);font-size:.85rem;text-align:center;padding:20px 0;">Memuat data...</div></div>
+    <div id="active-orders-list"><div style="color:var(--text-muted);font-size:.85rem;text-align:center;padding:20px 0;">Loading data...</div></div>
   </div>
 
   <div class="last-updated" id="lastUpdated">—</div>
@@ -218,7 +218,7 @@
 <div id="sidebar-nav">
   <div class="sidebar-header">
     <div class="restaurant-name">🍽️ Lokalin</div>
-    <button class="close-btn" onclick="toggleSidebar()" aria-label="Tutup">
+    <button class="close-btn" onclick="toggleSidebar()" aria-label="Close">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
     </button>
   </div>
@@ -228,24 +228,23 @@
   </a>
   <a href="/order?table=5" class="sidebar-link">
     <svg class="sidebar-icon" viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
-    Pesan (Customer)
+    Order (Customer)
   </a>
   <a href="/cashier" class="sidebar-link">
     <svg class="sidebar-icon" viewBox="0 0 24 24"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
-    Bar &amp; Kasir
+    Bar &amp; Cashier
   </a>
   <a href="/admin" class="sidebar-link">
-    <svg class="sidebar-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    <svg class="sidebar-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
     Admin Menu
   </a>
   <a href="/stock" class="sidebar-link">
     <svg class="sidebar-icon" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
-    Manajemen Stok
+    Stock Management
   </a>
   <a href="/sales" class="sidebar-link">
     <svg class="sidebar-icon" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
-    Laporan Penjualan
-  </a>
+    Sales Report
 </div>
 
 <script src="/dashboard.js?v=1"></script>

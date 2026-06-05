@@ -24,7 +24,7 @@ window.addEventListener("DOMContentLoaded", async () => {
       promptTableNumber();
   } else {
       document.getElementById("table-display").textContent = tableNumber;
-      document.getElementById("confirm-table").textContent = `Meja ${tableNumber}`;
+      document.getElementById("confirm-table").textContent = `Table ${tableNumber}`;
   }
 
   await loadMenu();
@@ -36,10 +36,10 @@ function promptTableNumber() {
     overlay.innerHTML = `
         <div class="checkout-panel show" style="max-width: 320px; opacity: 1 !important; transform: none !important;">
             <div style="font-size: 3rem; margin-bottom: 12px;">🍽️</div>
-            <h2 style="margin-bottom: 16px; font-family: 'Outfit';">Selamat Datang!</h2>
-            <p style="color: var(--text-muted); margin-bottom: 24px;">Silakan masukkan nomor meja Anda.</p>
-            <input type="number" id="manual-table-input" class="modal-textarea" placeholder="Contoh: 5" style="height: 50px; text-align: center; font-size: 1.2rem; font-weight: bold;" min="1" max="100">
-            <button class="btn btn-primary" onclick="submitManualTable()" style="width: 100%; margin-top: 16px;">Mulai Memesan</button>
+            <h2 style="margin-bottom: 16px; font-family: 'Outfit';">Welcome!</h2>
+            <p style="color: var(--text-muted); margin-bottom: 24px;">Please enter your table number.</p>
+            <input type="number" id="manual-table-input" class="modal-textarea" placeholder="Example: 5" style="height: 50px; text-align: center; font-size: 1.2rem; font-weight: bold;" min="1" max="100">
+            <button class="btn btn-primary" onclick="submitManualTable()" style="width: 100%; margin-top: 16px;">Start Ordering</button>
         </div>
     `;
     document.body.appendChild(overlay);
@@ -49,7 +49,7 @@ function promptTableNumber() {
         if (val > 0) {
             window.location.href = '/order?table=' + val;
         } else {
-            alert("Mohon masukkan nomor meja yang valid (angka).");
+            alert("Please enter a valid table number (number).");
         }
     }
 }
@@ -62,7 +62,7 @@ async function loadMenu() {
     renderMenuList("drinks-list", menu.drinks, DRINK_FALLBACKS);
   } catch (err) {
     document.getElementById("food-list").innerHTML =
-      `<div class="empty-state"><div class="empty-icon">⚠️</div><h3>Gagal memuat menu</h3><p>Coba refresh halaman</p></div>`;
+      `<div class="empty-state"><div class="empty-icon">⚠️</div><h3>Failed to load menu</h3><p>Try refreshing the page</p></div>`;
   }
 }
 
@@ -70,13 +70,13 @@ async function loadMenu() {
 function renderMenuList(containerId, items, icons) {
   const el = document.getElementById(containerId);
   if (!items || items.length === 0) {
-    el.innerHTML = `<div class="empty-state"><div class="empty-icon">🍽️</div><h3>Menu kosong</h3></div>`;
+    el.innerHTML = `<div class="empty-state"><div class="empty-icon">🍽️</div><h3>Empty menu</h3></div>`;
     return;
   }
 
   const grouped = {};
   items.forEach(item => {
-    const cat = item.category || "Lainnya";
+    const cat = item.category || "Other";
     if (!grouped[cat]) grouped[cat] = [];
     grouped[cat].push(item);
   });
@@ -119,12 +119,12 @@ function menuItemHTML(item, fallbackIconSvg) {
   const isOutOfStock = item.inStock === false || item.stock === 0;
   const outClass = isOutOfStock ? " out-of-stock" : "";
   const controlHTML = isOutOfStock
-    ? `<span class="badge-out-of-stock">Habis</span>`
+    ? `<span class="badge-out-of-stock">Out of stock</span>`
     : `
         <div class="qty-control" id="qty-ctrl-${item.id}">
-          <button class="qty-btn" onclick="changeQty('${item.id}', -1)" aria-label="Kurang">−</button>
+          <button class="qty-btn" onclick="changeQty('${item.id}', -1)" aria-label="Decrease">−</button>
           ${qtyDisplay}
-          <button class="qty-btn" onclick="changeQty('${item.id}', +1)" aria-label="Tambah">+</button>
+          <button class="qty-btn" onclick="changeQty('${item.id}', +1)" aria-label="Increase">+</button>
         </div>`;
 
   return `
@@ -409,17 +409,17 @@ function openCheckoutModal() {
     const name = item.name.split(' (')[0]; // Remove variant text for brevity
     
     if (item.id.startsWith("d")) {
-      placeholders.push(`${name} less sugar/es dipisah`);
+      placeholders.push(`${name} less sugar/ice separated`);
     } else if (name.toLowerCase().includes("nasi") || name.toLowerCase().includes("mie")) {
-      placeholders.push(`${name} pedas sedang`);
+      placeholders.push(`${name} medium spicy`);
     } else {
-      placeholders.push(`${name} ekstra saos/pisahkan`);
+      placeholders.push(`${name} extra sauce/separate`);
     }
   }
   
   const textarea = document.getElementById("modal-note");
   if (textarea) {
-    textarea.placeholder = "Misal: " + placeholders.join(", ") + "...";
+    textarea.placeholder = "e.g.: " + placeholders.join(", ") + "...";
     textarea.value = ""; // clear previous note
   }
   

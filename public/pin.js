@@ -9,15 +9,15 @@
 
     if (savedPin !== SECRET_PIN) {
         // Tampilkan pop-up keamanan yang menghentikan layar
-        const userInput = prompt("🔒 AREA TERBATAS\n\nMasukkan 4 digit PIN Rahasia staf Lokalin:");
+        const userInput = prompt("🔒 RESTRICTED AREA\n\nEnter the Lokalin staff Secret PIN:");
 
         if (userInput === SECRET_PIN) {
             // Jika benar, simpan di memori tablet agar tidak ditanya lagi
             localStorage.setItem('lokalin_admin_pin', SECRET_PIN);
-            alert("✅ Akses Diberikan. Selamat bertugas!");
+            alert("✅ Access Granted. Good work!");
         } else {
             // Jika salah, tendang kembali ke halaman order
-            alert("❌ PIN SALAH! Akses ditolak.");
+            alert("❌ INVALID PIN! Access denied.");
             window.location.href = "/order";
         }
     }

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cetak QR Code Meja</title>
+    <title>Print Table QR Code</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;700&display=swap');
         body {
@@ -76,16 +76,16 @@
             const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(baseUrl + i)}`;
             document.write(`
                 <div class="qr-card">
-                    <h1>MEJA ${i}</h1>
-                    <h2>Scan untuk Memesan</h2>
-                    <img src="${qrUrl}" alt="QR Code Meja ${i}" crossorigin="anonymous" />
+                    <h1>TABLE ${i}</h1>
+                    <h2>Scan to Order</h2>
+                    <img src="${qrUrl}" alt="Table ${i} QR Code" crossorigin="anonymous" />
                     <p>lokalincafe.vercel.app</p>
                 </div>
             `);
         }
     </script>
 
-    <button class="print-btn" onclick="window.print()">🖨️ Cetak QR Code</button>
+    <button class="print-btn" onclick="window.print()">🖨️ Print QR Code</button>
 
 </body>
 </html>
