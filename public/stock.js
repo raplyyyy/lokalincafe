@@ -72,13 +72,21 @@ let stockData = {
 };
 
 // ─── Cloud Sync Initialization ────────────────────────────────────────────────
+function parseTimestampSafe(ts) {
+    // Fix corrupted timestamps where colons are replaced with dots (e.g. T11.16.17)
+    if (!ts) return 0;
+    const fixed = String(ts).replace(/T(\d{2})\.(\d{2})\.(\d{2})/, 'T$1:$2:$3');
+    const ms = new Date(fixed).getTime();
+    return isNaN(ms) ? 0 : ms;
+}
+
 async function readLocalTab(key) {
     try {
         const str = localStorage.getItem(key);
         if (str) {
             const data = JSON.parse(str);
             if (data && data.items && Array.isArray(data.items) && data.items.length > 0) {
-                return { items: data.items, savedAt: new Date(data.savedAt || 0).getTime() };
+                return { items: data.items, savedAt: parseTimestampSafe(data.savedAt) };
             }
         }
     } catch(e) {}
@@ -90,8 +98,8 @@ async function fetchCloudTab(url) {
         const res = await fetch(url + '?t=' + Date.now(), { cache: 'no-store' });
         if (res.ok) {
             const data = await res.json();
-            if (data.items && Array.isArray(data.items) && data.items.length > 0) {
-                return { items: data.items, savedAt: new Date(data.savedAt || 0).getTime() };
+            if (data && data.items && Array.isArray(data.items) && data.items.length > 0) {
+                return { items: data.items, savedAt: parseTimestampSafe(data.savedAt) };
             }
         }
     } catch (e) {}
@@ -124,23 +132,41 @@ async function initStockData() {
         fetchCloudTab('/api/stock/data_bar')
     ]);
 
-    if (cloudKitchen && cloudKitchen.savedAt > (oldKitchen ? oldKitchen.savedAt : 0)) {
-        stockData.kitchen = cloudKitchen.items;
-        writeLocal('lokalin_kitchen_stock_data', cloudKitchen.items, new Date(cloudKitchen.savedAt).toISOString());
+    // ── Kitchen: Cloud wins if it has data AND is newer OR local has no valid timestamp.
+    //    If cloud has no data at all, fall back to local.
+    if (cloudKitchen) {
+        const cloudTs = cloudKitchen.savedAt || 0;
+        const localTs = oldKitchen ? oldKitchen.savedAt : 0;
+        // Use cloud if: no local data, OR cloud timestamp is newer, OR local timestamp is NaN/0
+        if (!oldKitchen || cloudTs >= localTs || localTs === 0) {
+            stockData.kitchen = cloudKitchen.items;
+            writeLocal('lokalin_kitchen_stock_data', cloudKitchen.items, new Date().toISOString());
+        } else {
+            stockData.kitchen = oldKitchen.items;
+            pushToCloud('/api/stock/data_kitchen', oldKitchen.items, new Date().toISOString());
+        }
     } else if (oldKitchen) {
         stockData.kitchen = oldKitchen.items;
-        pushToCloud('/api/stock/data_kitchen', oldKitchen.items, new Date(oldKitchen.savedAt).toISOString());
+        pushToCloud('/api/stock/data_kitchen', oldKitchen.items, new Date().toISOString());
     }
 
-    if (cloudBar && cloudBar.savedAt > (oldBar ? oldBar.savedAt : 0)) {
-        stockData.bar = cloudBar.items;
-        writeLocal('lokalin_bar_stock_data_v2', cloudBar.items, new Date(cloudBar.savedAt).toISOString());
+    // ── Bar: same logic
+    if (cloudBar) {
+        const cloudTs = cloudBar.savedAt || 0;
+        const localTs = oldBar ? oldBar.savedAt : 0;
+        if (!oldBar || cloudTs >= localTs || localTs === 0) {
+            stockData.bar = cloudBar.items;
+            writeLocal('lokalin_bar_stock_data_v2', cloudBar.items, new Date().toISOString());
+        } else {
+            stockData.bar = oldBar.items;
+            pushToCloud('/api/stock/data_bar', oldBar.items, new Date().toISOString());
+        }
     } else if (oldBar) {
         stockData.bar = oldBar.items;
-        pushToCloud('/api/stock/data_bar', oldBar.items, new Date(oldBar.savedAt).toISOString());
+        pushToCloud('/api/stock/data_bar', oldBar.items, new Date().toISOString());
     }
 
-    // Try fallback migration from old /api/stock/data if both are empty
+    // ── Last-resort fallback: migrate from old combined /api/stock/data endpoint
     if (!cloudKitchen && !oldKitchen && !cloudBar && !oldBar) {
         try {
             const res = await fetch('/api/stock/data');
