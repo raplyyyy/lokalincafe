@@ -121,7 +121,6 @@ async function flushDraft() {
     clearTimeout(draftTimeout);
     draftTimeout = null;
 
-    // Hitung omzet hari ini dari qty × harga (menggunakan priceMap dari /api/menu)
     let todayOmzet = 0;
     for (const tab of ['makanan', 'minuman']) {
         const products = allProducts(tab);
@@ -130,7 +129,6 @@ async function flushDraft() {
             if (!qty) continue;
             const product = products.find(p => String(p.id) === String(id));
             if (!product) continue;
-            // Cari harga dari priceMap menggunakan nama produk (case-insensitive)
             const priceKey = Object.keys(priceMap).find(k =>
                 k.toLowerCase() === product.name.toLowerCase()
             );
@@ -139,29 +137,44 @@ async function flushDraft() {
         }
     }
 
-    const payload = { todayEntries, customProducts, deletedProducts, todayOmzet };
+    // Include today's date so stale drafts from previous days can be detected on load
+    const payload = { todayEntries, customProducts, deletedProducts, todayOmzet, draftDate: todayDateKey() };
     localStorage.setItem('lokalin_sales_draft', JSON.stringify(payload));
     await cloudPost('draft', payload);
 }
 
 async function loadDraft() {
+    const today = todayDateKey();
     const cloud = await cloudGet('draft');
-    if (cloud && cloud.todayEntries) {
+
+    // Accept cloud draft only if it belongs to TODAY — discard stale drafts from previous days
+    if (cloud && cloud.todayEntries && cloud.draftDate === today) {
         todayEntries = cloud.todayEntries;
         if (cloud.customProducts) customProducts = cloud.customProducts;
         if (cloud.deletedProducts) deletedProducts = cloud.deletedProducts;
         return;
     }
-    // Fallback local
+
+    // Fallback: local draft, also check date
     const local = localStorage.getItem('lokalin_sales_draft');
     if (local) {
         try {
             const d = JSON.parse(local);
-            if (d.todayEntries) todayEntries = d.todayEntries;
+            if (d.todayEntries && d.draftDate === today) {
+                todayEntries = d.todayEntries;
+                if (d.customProducts) customProducts = d.customProducts;
+                if (d.deletedProducts) deletedProducts = d.deletedProducts;
+                // Push local to cloud since cloud was stale/missing
+                await cloudPost('draft', { ...d, draftDate: today });
+                return;
+            }
+            // Keep customProducts / deletedProducts even if date doesn't match (they're persistent config)
             if (d.customProducts) customProducts = d.customProducts;
             if (d.deletedProducts) deletedProducts = d.deletedProducts;
         } catch(e) {}
     }
+
+    // If we reach here, it's a fresh new day — todayEntries stays empty (default)
 }
 
 // ── History ───────────────────────────────────────────────────────────────────
@@ -301,7 +314,7 @@ document.getElementById('closeDayBtn').addEventListener('click', async () => {
             btn.disabled = true;
             btn.innerHTML = '☁️ Saving...';
 
-            // 1. Flush draft first
+            // 1. Flush current draft to cloud first
             await flushDraft();
 
             const dateKey = todayDateKey();
@@ -319,13 +332,18 @@ document.getElementById('closeDayBtn').addEventListener('click', async () => {
 
             // 3. Clear today's entries for this tab only
             todayEntries[tab] = {};
+
+            // 4. Flush cleared draft — use both fetch AND sendBeacon for reliability
             await flushDraft();
+            // Beacon backup: ensures the clear reaches the server even if the user closes quickly
+            const clearedPayload = JSON.stringify({ todayEntries, customProducts, deletedProducts, todayOmzet: 0, draftDate: todayDateKey() });
+            navigator.sendBeacon('/api/sales/draft', new Blob([clearedPayload], { type: 'application/json' }));
 
             renderTable();
             btn.disabled = false;
             btn.innerHTML = '✅ Close Day (Closing)';
 
-            // 4. Check if history >= 7 days, show reminder if so
+            // 5. Check if history >= 7 days, show reminder if so
             const tabHistory = tab === 'makanan' ? historyMakanan : historyMinuman;
             if (tabHistory.length >= 7) {
                 setTimeout(() => {
@@ -336,6 +354,15 @@ document.getElementById('closeDayBtn').addEventListener('click', async () => {
             }
         }
     );
+});
+
+// Flush draft on page close — sendBeacon ensures delivery even during unload
+window.addEventListener('beforeunload', () => {
+    clearTimeout(draftTimeout);
+    const savedAt = todayDateKey();
+    const payload = JSON.stringify({ todayEntries, customProducts, deletedProducts, draftDate: savedAt });
+    localStorage.setItem('lokalin_sales_draft', payload);
+    navigator.sendBeacon('/api/sales/draft', new Blob([payload], { type: 'application/json' }));
 });
 
 // ── Refresh ───────────────────────────────────────────────────────────────────
