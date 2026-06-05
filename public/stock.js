@@ -80,13 +80,18 @@ function parseTimestampSafe(ts) {
     return isNaN(ms) ? 0 : ms;
 }
 
-async function readLocalTab(key) {
+function readLocalTab(key) {
     try {
         const str = localStorage.getItem(key);
         if (str) {
             const data = JSON.parse(str);
+            // New format: { items: [...], savedAt: '...' }
             if (data && data.items && Array.isArray(data.items) && data.items.length > 0) {
                 return { items: data.items, savedAt: parseTimestampSafe(data.savedAt) };
+            }
+            // Old format: plain array — treat as very old (savedAt=1) so cloud always wins
+            if (Array.isArray(data) && data.length > 0) {
+                return { items: data, savedAt: 1 };
             }
         }
     } catch(e) {}
@@ -124,47 +129,51 @@ async function pushToCloud(url, items, savedAt) {
 }
 
 async function initStockData() {
-    // ── 1. Fetch cloud data (authoritative shared state) and local cache in parallel
+    // ── 1. Fetch cloud + local in parallel
     const [cloudKitchen, cloudBar, oldKitchen, oldBar] = await Promise.all([
         fetchCloudTab('/api/stock/data_kitchen'),
         fetchCloudTab('/api/stock/data_bar'),
-        readLocalTab('lokalin_kitchen_stock_data'),
-        readLocalTab('lokalin_bar_stock_data_v2')
+        Promise.resolve(readLocalTab('lokalin_kitchen_stock_data')),
+        Promise.resolve(readLocalTab('lokalin_bar_stock_data_v2'))
     ]);
 
-    // ── 2. Kitchen: prefer cloud if cloud has items (cloud = source of truth).
-    //    Fall back to local ONLY if cloud is null/empty.
-    //    NEVER auto-push local to cloud here — that causes race conditions between devices.
-    if (cloudKitchen) {
-        const cloudTs = cloudKitchen.savedAt || 0;
-        const localTs = oldKitchen ? oldKitchen.savedAt : 0;
-        if (cloudTs >= localTs || !oldKitchen || localTs === 0) {
-            stockData.kitchen = cloudKitchen.items;
-            writeLocal('lokalin_kitchen_stock_data', cloudKitchen.items, new Date().toISOString());
-        } else {
-            // Local is strictly newer — use local, but DON'T auto-push to avoid clobbering other devices
-            stockData.kitchen = oldKitchen.items;
+    // ── 2. Resolve kitchen: newest timestamp wins.
+    //    If local is newer (e.g. cloud push failed earlier), use local AND push to cloud.
+    //    Old-format local data has savedAt=1 so cloud always beats it.
+    function resolveTab(cloud, local, localKey, cloudUrl) {
+        const cloudTs = cloud ? (cloud.savedAt || 0) : 0;
+        const localTs = local ? (local.savedAt || 0) : 0;
+
+        if (cloud && cloudTs >= localTs) {
+            // Cloud is newest → use it, update local cache
+            writeLocal(localKey, cloud.items, new Date().toISOString());
+            return cloud.items;
+        } else if (local && localTs > cloudTs) {
+            // Local is strictly newer → use local, push to cloud to share with other devices
+            pushToCloud(cloudUrl, local.items, new Date().toISOString());
+            return local.items;
+        } else if (cloud) {
+            // Equal timestamp or no local → prefer cloud
+            writeLocal(localKey, cloud.items, new Date().toISOString());
+            return cloud.items;
+        } else if (local) {
+            // No cloud at all → use local, try to push
+            pushToCloud(cloudUrl, local.items, new Date().toISOString());
+            return local.items;
         }
-    } else if (oldKitchen) {
-        stockData.kitchen = oldKitchen.items;
+        return null; // both empty → keep defaults
     }
 
-    // ── 3. Bar: same logic
-    if (cloudBar) {
-        const cloudTs = cloudBar.savedAt || 0;
-        const localTs = oldBar ? oldBar.savedAt : 0;
-        if (cloudTs >= localTs || !oldBar || localTs === 0) {
-            stockData.bar = cloudBar.items;
-            writeLocal('lokalin_bar_stock_data_v2', cloudBar.items, new Date().toISOString());
-        } else {
-            stockData.bar = oldBar.items;
-        }
-    } else if (oldBar) {
-        stockData.bar = oldBar.items;
-    }
+    const kitchenItems = resolveTab(cloudKitchen, oldKitchen,
+        'lokalin_kitchen_stock_data', '/api/stock/data_kitchen');
+    const barItems = resolveTab(cloudBar, oldBar,
+        'lokalin_bar_stock_data_v2', '/api/stock/data_bar');
 
-    // ── 4. Last-resort: migrate from old combined endpoint if both are empty
-    if (!cloudKitchen && !oldKitchen && !cloudBar && !oldBar) {
+    if (kitchenItems) stockData.kitchen = kitchenItems;
+    if (barItems) stockData.bar = barItems;
+
+    // ── 3. Last-resort: migrate from old combined endpoint if both are empty
+    if (!kitchenItems && !barItems) {
         try {
             const res = await fetch('/api/stock/data');
             if (res.ok) {
@@ -172,10 +181,12 @@ async function initStockData() {
                 if (old.kitchen && old.kitchen.length > 0) {
                     stockData.kitchen = old.kitchen;
                     writeLocal('lokalin_kitchen_stock_data', old.kitchen, new Date().toISOString());
+                    pushToCloud('/api/stock/data_kitchen', old.kitchen, new Date().toISOString());
                 }
                 if (old.bar && old.bar.length > 0) {
                     stockData.bar = old.bar;
                     writeLocal('lokalin_bar_stock_data_v2', old.bar, new Date().toISOString());
+                    pushToCloud('/api/stock/data_bar', old.bar, new Date().toISOString());
                 }
             }
         } catch(e) {}
@@ -183,6 +194,18 @@ async function initStockData() {
 
     renderTable();
 }
+
+// ── Flush on page close (sendBeacon ensures delivery even during unload)
+window.addEventListener('beforeunload', () => {
+    clearTimeout(syncTimeout);
+    const savedAt = new Date().toISOString();
+    writeLocal('lokalin_kitchen_stock_data', stockData.kitchen, savedAt);
+    writeLocal('lokalin_bar_stock_data_v2', stockData.bar, savedAt);
+    const kitchenBlob = new Blob([JSON.stringify({ items: stockData.kitchen, savedAt })], { type: 'application/json' });
+    const barBlob = new Blob([JSON.stringify({ items: stockData.bar, savedAt })], { type: 'application/json' });
+    navigator.sendBeacon('/api/stock/data_kitchen', kitchenBlob);
+    navigator.sendBeacon('/api/stock/data_bar', barBlob);
+});
 
 
 // Elements
