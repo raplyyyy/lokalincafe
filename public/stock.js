@@ -61,69 +61,6 @@ let stockData = {
         { id: 123, name: "GULA AREN (ltr)", initial: 4556, in: 0, out: 0, spoil: 0 },
         { id: 124, name: "GULA PASIR (gr)", initial: 143, in: 0, out: 0, spoil: 0 },
         { id: 125, name: "CHOCOLATE POWDER (gr)", initial: 955, in: 0, out: 0, spoil: 0 },
-// Data Model
-let currentTab = 'kitchen';
-
-let stockData = {
-    kitchen: [
-        { id: 1, name: "AYAM NASI GORENG", initial: 2, in: 0, out: 0, spoil: 0 },
-        { id: 2, name: "AYAM MIE GORENG", initial: 21, in: 0, out: 0, spoil: 0 },
-        { id: 3, name: "AYAM PALLEKO", initial: 5, in: 0, out: 0, spoil: 0 },
-        { id: 4, name: "AYAM RICA", initial: 0, in: 0, out: 0, spoil: 0 },
-        { id: 5, name: "BAKSO IKAN", initial: 9, in: 0, out: 0, spoil: 0 },
-        { id: 6, name: "BAKSO SAPI", initial: 23, in: 0, out: 0, spoil: 0 },
-        { id: 7, name: "BEEF BLACKPEPPER", initial: 13, in: 0, out: 0, spoil: 0 },
-        { id: 8, name: "BUN BURGER", initial: 6, in: 0, out: 0, spoil: 0 },
-        { id: 9, name: "CHICKEN WING", initial: 1, in: 0, out: 0, spoil: 0 },
-        { id: 10, name: "CUMI NASI GORENG", initial: 12, in: 0, out: 0, spoil: 0 },
-        { id: 11, name: "FRENCH FRIES", initial: 5, in: 0, out: 0, spoil: 0 },
-        { id: 12, name: "MIE KUNING", initial: 10, in: 0, out: 0, spoil: 0 },
-        { id: 13, name: "MIX VEGETABLE", initial: 14, in: 0, out: 0, spoil: 0 },
-        { id: 14, name: "MIX VEGETABLE RICA", initial: 1, in: 0, out: 0, spoil: 0 },
-        { id: 15, name: "PARU RICA", initial: 0, in: 0, out: 0, spoil: 0 },
-        { id: 16, name: "PATTY BURGER", initial: 12, in: 0, out: 0, spoil: 0 },
-        { id: 17, name: "PISANG KEPOK", initial: 9, in: 0, out: 0, spoil: 0 },
-        { id: 18, name: "TAHU", initial: 11, in: 0, out: 0, spoil: 0 },
-        { id: 19, name: "TELUR", initial: 27, in: 0, out: 0, spoil: 0 },
-        { id: 20, name: "TEMPE", initial: 15, in: 0, out: 0, spoil: 0 },
-        { id: 21, name: "UBI GORENG", initial: 6, in: 0, out: 0, spoil: 0 },
-        { id: 22, name: "UDANG NASI GORENG", initial: 6, in: 0, out: 0, spoil: 0 },
-        { id: 23, name: "UDANG TELUR ASIN", initial: 5, in: 0, out: 0, spoil: 0 },
-        { id: 24, name: "SAUCE BBQ", initial: 0, in: 0, out: 0, spoil: 0 },
-        { id: 25, name: "SAUCE SALTED EGG", initial: 0, in: 0, out: 0, spoil: 0 },
-        { id: 26, name: "SAUCE BLACKPEPPER", initial: 0, in: 0, out: 0, spoil: 0 },
-        { id: 27, name: "SAMBEL RICA", initial: 0, in: 0, out: 0, spoil: 0 },
-        { id: 28, name: "SAMBEL PARU RICA", initial: 0, in: 0, out: 0, spoil: 0 },
-        { id: 29, name: "SAMBEL TERASI", initial: 0, in: 0, out: 0, spoil: 0 },
-        { id: 30, name: "BARONGKO", initial: 0, in: 0, out: 0, spoil: 0 },
-        { id: 31, name: "Sauce Nasi Goreng", initial: 2, in: 0, out: 0, spoil: 0 }
-    ],
-    bar: [
-        { id: 101, name: "BEANS (gr)", initial: 630, in: 0, out: 0, spoil: 0 },
-        { id: 102, name: "COLD COFFEE LOKALIN (btl)", initial: 10, in: 0, out: 0, spoil: 0 },
-        { id: 103, name: "COLD COFFEE BUTTERSCOTCH (btl)", initial: 10, in: 0, out: 0, spoil: 0 },
-        { id: 104, name: "LIPTON TEA (pcs)", initial: 68, in: 0, out: 0, spoil: 0 },
-        { id: 105, name: "VANILLA SYRUP (ml)", initial: 663, in: 0, out: 0, spoil: 0 },
-        { id: 106, name: "CARAMEL SYRUP (ml)", initial: 843, in: 0, out: 0, spoil: 0 },
-        { id: 107, name: "HAZELNUT SYRUP (ml)", initial: 1006, in: 0, out: 0, spoil: 0 },
-        { id: 108, name: "LYCHEE SYRUP (ml)", initial: 1104, in: 0, out: 0, spoil: 0 },
-        { id: 109, name: "PEACH SYRUP (ml)", initial: 1280, in: 0, out: 0, spoil: 0 },
-        { id: 110, name: "LEMON SYRUP (ml)", initial: 1133, in: 0, out: 0, spoil: 0 },
-        { id: 111, name: "MARKISA SYRUP (ml)", initial: 0, in: 0, out: 0, spoil: 0 },
-        { id: 112, name: "PANDAN SYRUP (ml)", initial: 394, in: 0, out: 0, spoil: 0 },
-        { id: 113, name: "BUTTERSCOTCH SYRUP (ml)", initial: 642, in: 0, out: 0, spoil: 0 },
-        { id: 114, name: "BANANA SYRUP (ml)", initial: 361, in: 0, out: 0, spoil: 0 },
-        { id: 115, name: "MINT SYRUP (ml)", initial: 1144, in: 0, out: 0, spoil: 0 },
-        { id: 116, name: "SODA WATER (klg)", initial: 3, in: 0, out: 0, spoil: 0 },
-        { id: 117, name: "SKM (klg)", initial: 1, in: 0, out: 0, spoil: 0 },
-        { id: 118, name: "FRESH MILK (ltr)", initial: 9, in: 0, out: 0, spoil: 0 },
-        { id: 119, name: "MINERAL WATER (btl)", initial: 32, in: 0, out: 0, spoil: 0 },
-        { id: 120, name: "BOTOL (btl)", initial: 84, in: 0, out: 0, spoil: 0 },
-        { id: 121, name: "PEACH KALENG (klg)", initial: 1, in: 0, out: 0, spoil: 0 },
-        { id: 122, name: "LYCHEE KALENG (klg)", initial: 0, in: 0, out: 0, spoil: 0 },
-        { id: 123, name: "GULA AREN (ltr)", initial: 4556, in: 0, out: 0, spoil: 0 },
-        { id: 124, name: "GULA PASIR (gr)", initial: 143, in: 0, out: 0, spoil: 0 },
-        { id: 125, name: "CHOCOLATE POWDER (gr)", initial: 955, in: 0, out: 0, spoil: 0 },
         { id: 126, name: "RED VELVET POWDER (gr)", initial: 635, in: 0, out: 0, spoil: 0 },
         { id: 127, name: "MATCHA POWDER (gr)", initial: 824, in: 0, out: 0, spoil: 0 },
         { id: 128, name: "THAI TEA (gr)", initial: 409, in: 0, out: 0, spoil: 0 },
@@ -136,10 +73,7 @@ let stockData = {
 
 function getBusinessDate() {
     const d = new Date();
-    // Jika jam antara 00:00 - 04:59, hitung sebagai hari bisnis kemarin
-    if (d.getHours() < 5) {
-        d.setDate(d.getDate() - 1);
-    }
+    if (d.getHours() < 5) d.setDate(d.getDate() - 1);
     return d;
 }
 
@@ -571,6 +505,277 @@ function checkAllAlerts() {
             alertContainer.appendChild(alertDiv);
         }
     });
+}
+
+function attachInputListeners() {
+    const handleInput = (e, field) => {
+        let valStr = e.target.value;
+        let value = parseInt(valStr);
+
+        if (isNaN(value) || value < 0) {
+            if (valStr === "") {
+                value = "";
+            } else {
+                value = 0;
+                e.target.value = 0;
+            }
+        }
+
+        const index = e.target.getAttribute('data-index');
+        stockData[currentTab][index][field] = value;
+        saveData();
+        updateRowUI(index);
+        checkAllAlerts();
+    };
+
+    const handleBlur = (e, field) => {
+        if (e.target.value === "") {
+            if (currentTab === 'bar' && field === 'spoil') {
+                // Allow empty for bar balance (defaults to expected)
+            } else {
+                e.target.value = 0;
+                const index = e.target.getAttribute('data-index');
+                stockData[currentTab][index][field] = 0;
+                saveData();
+                updateRowUI(index);
+                checkAllAlerts();
+            }
+        }
+    };
+
+    const attach = (selector, field) => {
+        document.querySelectorAll(selector).forEach(input => {
+            input.addEventListener('input', (e) => handleInput(e, field));
+            input.addEventListener('blur', (e) => handleBlur(e, field));
+        });
+    };
+
+    attach('.initial-input', 'initial');
+    attach('.in-input', 'in');
+    attach('.out-input', 'out');
+    attach('.spoil-input', 'spoil');
+
+    document.querySelectorAll('.delete-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const index = e.currentTarget.getAttribute('data-index');
+            if (confirm(`Are you sure you want to delete ${stockData[currentTab][index].name}?`)) {
+                stockData[currentTab].splice(index, 1);
+                saveData();
+                renderTable();
+            }
+        });
+    });
+}
+
+// Add Form Handlers
+window.addStockItem = function () {
+    const nameInput = document.getElementById('inp-name');
+    const initialInput = document.getElementById('inp-initial');
+
+    const name = nameInput.value.trim();
+    const initial = parseInt(initialInput.value) || 0;
+
+    if (!name) {
+        alert("Menu name cannot be empty.");
+        return;
+    }
+
+    stockData[currentTab].push({
+        id: Date.now(),
+        name: name,
+        initial: Math.max(0, initial),
+        in: 0,
+        out: 0,
+        spoil: 0
+    });
+
+    saveData();
+    renderTable();
+    clearForm();
+};
+
+window.clearForm = function () {
+    document.getElementById('inp-name').value = '';
+    document.getElementById('inp-initial').value = '0';
+};
+
+// Export Excel Logic
+window.openExportModal = function () {
+    document.getElementById('exportModal').classList.add('show');
+    toggleExportInputs();
+}
+
+window.closeExportModal = function () {
+    document.getElementById('exportModal').classList.remove('show');
+}
+
+window.toggleExportInputs = function () {
+    const val = document.getElementById('export-type').value;
+    document.getElementById('export-date-group').style.display = (val === 'harian') ? 'block' : 'none';
+    document.getElementById('export-month-group').style.display = (val === 'bulanan') ? 'block' : 'none';
+}
+
+function parseLocaleDate(dateStr) {
+    // Basic parser for "Selasa, 26 Mei 2026 pukul 01.10"
+    try {
+        const parts = dateStr.replace(' pukul ', ' ').replace(',', '').split(' ');
+        if (parts.length < 5) return null;
+        // Parts: [Selasa, 26, Mei, 2026, 01.10]
+        const day = parts[1].padStart(2, '0');
+        const monthNames = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+        let month = (monthNames.indexOf(parts[2]) + 1).toString().padStart(2, '0');
+        const year = parts[3];
+        return `${year}-${month}-${day}`;
+    } catch (e) { return null; }
+}
+
+window.processExportExcel = async function () {
+    const type = document.getElementById('export-type').value;
+    const history = await getHistory();
+    const currentData = stockData[currentTab];
+    let dataToExport = [];
+    let title = "Stock";
+
+    if (type === 'hari_ini') {
+        title = `Today's Recap (Not Closed) - ${currentTab.toUpperCase()}`;
+        dataToExport = currentData.map(item => ({
+            "Menu Name": item.name,
+            "Initial": item.initial,
+            "IN": item.in,
+            "OUT": item.out,
+            "Spoil / Physical Balance": currentTab === 'bar' && (item.spoil === "" || item.spoil == null) ? calculateExpectedBar(item) : item.spoil,
+            "Final / Used": currentTab === 'bar' ? calculateExpectedBar(item) : calculateFinalStock(item)
+        }));
+    }
+    else if (type === 'harian') {
+        const dateInput = document.getElementById('export-date').value; // YYYY-MM-DD
+        if (!dateInput) return alert("Please select a date first!");
+
+        let found = history.filter(h => parseLocaleDate(h.date) === dateInput);
+        if (found.length === 0) return alert("No recap data for that date.");
+
+        title = `Daily Report ${dateInput} - ${currentTab.toUpperCase()}`;
+        found.forEach(h => {
+            h.items.forEach(item => {
+                dataToExport.push({
+                    "Recap Date": h.date,
+                    "Menu Name": item.name,
+                    "Initial": item.initial,
+                    "IN": item.in,
+                    "OUT": item.out,
+                    "Spoil / Physical Balance": item.spoil,
+                    "Final / Used": item.final
+                });
+            });
+        });
+    }
+    else if (type === 'bulanan') {
+        const monthInput = document.getElementById('export-month').value; // YYYY-MM
+        if (!monthInput) return alert("Please select a month first!");
+
+        let found = history.filter(h => {
+            let parsed = parseLocaleDate(h.date);
+            return parsed && parsed.startsWith(monthInput);
+        });
+        if (found.length === 0) return alert("No recap data for that month.");
+
+        title = `Monthly Report ${monthInput} - ${currentTab.toUpperCase()}`;
+        found.forEach(h => {
+            h.items.forEach(item => {
+                dataToExport.push({
+                    "Recap Date": h.date,
+                    "Menu Name": item.name,
+                    "Initial": item.initial,
+                    "IN": item.in,
+                    "OUT": item.out,
+                    "Spoil / Physical Balance": item.spoil,
+                    "Final / Used": item.final
+                });
+            });
+        });
+    }
+    else if (type === 'semua') {
+        if (history.length === 0) return alert("No saved recap history yet.");
+        title = `All History - ${currentTab.toUpperCase()}`;
+        history.forEach(h => {
+            h.items.forEach(item => {
+                dataToExport.push({
+                    "Recap Date": h.date,
+                    "Menu Name": item.name,
+                    "Initial": item.initial,
+                    "IN": item.in,
+                    "OUT": item.out,
+                    "Spoil / Physical Balance": item.spoil,
+                    "Final / Used": item.final
+                });
+            });
+        });
+    }
+
+    if (dataToExport.length === 0) return alert("Data is empty.");
+
+    const ws = XLSX.utils.json_to_sheet(dataToExport);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Stock Report");
+
+    // Download
+    XLSX.writeFile(wb, `${title}.xlsx`);
+    closeExportModal();
+}
+
+// Close Day & Recap Logic
+function getHistoryLocal() {
+    const key = currentTab === 'kitchen' ? 'lokalin_kitchen_stock_history' : 'lokalin_bar_stock_history';
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : [];
+}
+
+// Read-only: fetch from cloud, fallback to local (no auto-save/migrate side effects)
+async function getHistory() {
+    try {
+        const res = await fetch(`/api/stock/history_${currentTab}`);
+        if (res.ok) {
+            const cloudData = await res.json();
+            if (Array.isArray(cloudData) && cloudData.length > 0) return cloudData;
+        }
+    } catch (e) { }
+    // Fallback to local storage only (no migrate/save here to avoid race conditions)
+    return getHistoryLocal();
+}
+
+async function saveHistory(historyArray) {
+    const key = currentTab === 'kitchen' ? 'lokalin_kitchen_stock_history' : 'lokalin_bar_stock_history';
+    localStorage.setItem(key, JSON.stringify(historyArray));
+    try {
+        await fetch(`/api/stock/history_${currentTab}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(historyArray)
+        });
+    } catch (e) { }
+}
+
+closeDayBtn.addEventListener('click', async () => {
+    const confirmClose = confirm(`Are you sure you want to 'Close Day' for ${currentTab.toUpperCase()}?\n\nToday's data will be saved to Recap, then Final Stock will become Initial Stock for tomorrow, and In/Out/Spoil values will be cleared.`);
+    if (!confirmClose) return;
+
+    closeDayBtn.disabled = true;
+    closeDayBtn.innerHTML = "Saving to Cloud... ☁️";
+
+    // Pastikan semua perubahan input sudah tersimpan ke cloud sebelum tutup hari
+    await flushSave();
+
+    const history = await getHistory();
+    const businessDate = getBusinessDate();
+    const realDate = new Date();
+    businessDate.setHours(realDate.getHours(), realDate.getMinutes(), realDate.getSeconds());
+
+    const todayStr = businessDate.toLocaleString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+
+    const snapshot = stockData[currentTab].map(item => {
+        const expectedBar = calculateExpectedBar(item);
+        const barBalanceNotSet = currentTab === 'bar' && (item.spoil === "" || item.spoil == null || item.spoil === 0);
+        return {
             name: item.name,
             initial: item.initial,
             in: item.in,
