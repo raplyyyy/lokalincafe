@@ -201,8 +201,8 @@ async function initStockData() {
     renderTable();
 }
 
-// ── Flush on page close (sendBeacon ensures delivery even during unload)
-window.addEventListener('beforeunload', () => {
+// ── Flush on page close or hide (sendBeacon ensures delivery even during unload)
+function flushOnExit() {
     clearTimeout(syncTimeout);
     const savedAt = new Date().toISOString();
     writeLocal('lokalin_kitchen_stock_data', stockData.kitchen, savedAt);
@@ -211,6 +211,13 @@ window.addEventListener('beforeunload', () => {
     const barBlob = new Blob([JSON.stringify({ items: stockData.bar, savedAt })], { type: 'application/json' });
     navigator.sendBeacon('/api/stock/data_kitchen', kitchenBlob);
     navigator.sendBeacon('/api/stock/data_bar', barBlob);
+}
+
+window.addEventListener('beforeunload', flushOnExit);
+document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') {
+        flushOnExit();
+    }
 });
 
 
@@ -258,6 +265,20 @@ async function flushSave() {
         pushToCloud('/api/stock/data_kitchen', stockData.kitchen, savedAt),
         pushToCloud('/api/stock/data_bar', stockData.bar, savedAt)
     ]);
+}
+
+if (saveDraftBtn) {
+    saveDraftBtn.addEventListener('click', async () => {
+        saveDraftBtn.disabled = true;
+        const originalText = saveDraftBtn.innerHTML;
+        saveDraftBtn.innerHTML = '☁️ Saving...';
+        await flushSave();
+        saveDraftBtn.innerHTML = '✅ Saved';
+        setTimeout(() => {
+            saveDraftBtn.disabled = false;
+            saveDraftBtn.innerHTML = originalText;
+        }, 1500);
+    });
 }
 
 function calculateFinalStock(item) {
@@ -597,6 +618,103 @@ window.addStockItem = function () {
 window.clearForm = function () {
     document.getElementById('inp-name').value = '';
     document.getElementById('inp-initial').value = '0';
+};
+
+// ── Add Past Stock Record ──────────────────────────────────────────────────────
+window.openPastStockEntry = function() {
+    const d = new Date();
+    d.setDate(d.getDate() - 1); // default yesterday
+    const tzOffset = d.getTimezoneOffset() * 60000;
+    const localISOTime = (new Date(d - tzOffset)).toISOString().slice(0,16);
+    document.getElementById('pastStockDate').value = localISOTime;
+    document.getElementById('pastStockTitle').textContent = `🕰️ Add Past Stock Data (${currentTab.toUpperCase()})`;
+
+    const thead = document.getElementById('pastStockHead');
+    if (currentTab === 'bar') {
+        thead.innerHTML = `<tr><th>Menu Name</th><th>Initial</th><th>IN</th><th>OUT</th><th>Balance</th><th class="text-center">Final</th></tr>`;
+    } else {
+        thead.innerHTML = `<tr><th>Menu Name</th><th>Initial</th><th>IN</th><th>OUT</th><th>Spoil</th><th class="text-center">Final</th></tr>`;
+    }
+
+    const tbody = document.getElementById('pastStockBody');
+    const items = stockData[currentTab];
+    
+    tbody.innerHTML = items.map((item, idx) => {
+        return `
+        <tr>
+            <td style="font-weight:700;">${item.name}</td>
+            <td><input type="number" class="initial-input p-init" data-idx="${idx}" value="0" min="0" style="width:56px;padding:6px;"></td>
+            <td><input type="number" class="in-input p-in" data-idx="${idx}" value="0" min="0" style="width:56px;padding:6px;"></td>
+            <td><input type="number" class="out-input p-out" data-idx="${idx}" value="0" min="0" style="width:56px;padding:6px;"></td>
+            <td><input type="number" class="spoil-input p-spoil" data-idx="${idx}" value="0" min="0" style="width:56px;padding:6px;"></td>
+            <td class="text-center">-</td>
+        </tr>`;
+    }).join('');
+
+    document.getElementById('pastStockModal').classList.add('show');
+};
+
+window.savePastStockRecord = async function() {
+    const dateInput = document.getElementById('pastStockDate').value;
+    if (!dateInput) return alert("Please select a date first!");
+    
+    const selectedDate = new Date(dateInput);
+    const dateStr = selectedDate.toLocaleString('id-ID', {
+        weekday:'long', year:'numeric', month:'long', day:'numeric', hour:'2-digit', minute:'2-digit'
+    });
+
+    const items = stockData[currentTab];
+    const snapshot = [];
+    
+    const rows = document.getElementById('pastStockBody').querySelectorAll('tr');
+    rows.forEach((row, i) => {
+        const init = parseInt(row.querySelector('.p-init').value) || 0;
+        const inQty = parseInt(row.querySelector('.p-in').value) || 0;
+        const outQty = parseInt(row.querySelector('.p-out').value) || 0;
+        const spoil = parseInt(row.querySelector('.p-spoil').value) || 0;
+        
+        let finalStock;
+        if (currentTab === 'bar') {
+            finalStock = spoil; // In Bar, spoil is the actual physical balance
+        } else {
+            finalStock = init + inQty - outQty - spoil;
+        }
+
+        snapshot.push({
+            name: items[i].name,
+            initial: init,
+            in: inQty,
+            out: outQty,
+            spoil: spoil,
+            final: finalStock
+        });
+    });
+
+    const btn = document.querySelector('#pastStockModal .btn-primary');
+    btn.disabled = true;
+    btn.innerHTML = '☁️ Saving...';
+
+    const history = await getHistory();
+    history.push({ date: dateStr, items: snapshot });
+    
+    history.sort((a,b) => {
+       const da = parseLocaleDate(a.date) || a.date;
+       const db = parseLocaleDate(b.date) || b.date;
+       // If parse fails, fallback to string comparison (it might be brittle but works for recent dates)
+       return db.localeCompare(da);
+    });
+
+    await saveHistory(history);
+    
+    btn.disabled = false;
+    btn.innerHTML = '💾 Save Past Record';
+    document.getElementById('pastStockModal').classList.remove('show');
+    alert("✅ Past stock record added successfully!");
+    
+    // Refresh modal
+    if (typeof loadHistoryModal === "function") {
+        loadHistoryModal();
+    }
 };
 
 // Export Excel Logic

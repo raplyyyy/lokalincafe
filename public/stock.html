@@ -261,12 +261,36 @@
     <div class="checkout-header">
       <h2 class="checkout-title">🗓️ Daily Recap History</h2>
       <div style="display: flex; align-items: center; gap: 12px;">
+        <button class="btn btn-ghost" onclick="openPastStockEntry()" style="padding: 6px 12px; color: var(--accent); border-color: rgba(99,179,237,0.3); font-size: 0.8rem;">➕ Add Past Recap</button>
         <button class="btn btn-ghost" onclick="clearHistory()" style="padding: 6px 12px; color: #fc8181; border-color: rgba(229,62,62,0.3); font-size: 0.8rem;">🗑️ Clear</button>
         <button class="modal-close" onclick="closeHistoryModal()">✕</button>
       </div>
     </div>
     <div id="historyContainer" style="margin-top: 16px;">
       <!-- Dates and tables injected here -->
+    </div>
+  </div>
+</div>
+
+<!-- Past Stock Modal -->
+<div id="pastStockModal" class="modal-overlay">
+  <div class="checkout-panel" style="max-height:85vh;overflow-y:auto;text-align:left;max-width:960px;opacity:1!important;transform:none!important;">
+    <div class="checkout-header">
+      <h2 class="checkout-title" id="pastStockTitle">🕰️ Add Past Stock Data</h2>
+      <button class="modal-close" onclick="document.getElementById('pastStockModal').classList.remove('show')">✕</button>
+    </div>
+    <div style="margin-top:16px;">
+      <div class="form-group" style="margin-bottom:16px;">
+        <label style="font-weight:700;display:block;margin-bottom:8px;">Select Past Date & Time:</label>
+        <input type="datetime-local" id="pastStockDate" class="modal-textarea" style="height:48px;padding:12px;font-weight:600;width:100%;" />
+      </div>
+      <div class="stock-table-container">
+        <table class="stock-table">
+          <thead id="pastStockHead"></thead>
+          <tbody id="pastStockBody"></tbody>
+        </table>
+      </div>
+      <button class="btn btn-primary" onclick="savePastStockRecord()" style="width:100%;margin-top:16px;background:var(--accent);">💾 Save Past Record</button>
     </div>
   </div>
 </div>

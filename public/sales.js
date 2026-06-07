@@ -370,13 +370,20 @@ document.getElementById('closeDayBtn').addEventListener('click', async () => {
     );
 });
 
-// Flush draft on page close — sendBeacon ensures delivery even during unload
-window.addEventListener('beforeunload', () => {
+// Flush draft on page close or hide — sendBeacon ensures delivery even during unload
+function flushDraftOnExit() {
     clearTimeout(draftTimeout);
     const savedAt = todayDateKey();
     const payload = JSON.stringify({ todayEntries, customProducts, deletedProducts, draftDate: savedAt });
     localStorage.setItem('lokalin_sales_draft', payload);
     navigator.sendBeacon('/api/sales/draft', new Blob([payload], { type: 'application/json' }));
+}
+
+window.addEventListener('beforeunload', flushDraftOnExit);
+document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') {
+        flushDraftOnExit();
+    }
 });
 
 // ── Refresh ───────────────────────────────────────────────────────────────────
@@ -476,6 +483,77 @@ window.deleteHistorySalesEntry = async function(index) {
             document.getElementById('viewHistoryBtn').click();
         }
     );
+};
+
+// ── Add Past Sales Record ──────────────────────────────────────────────────────
+window.openPastSalesEntry = function() {
+    const d = new Date();
+    d.setDate(d.getDate() - 1); // default to yesterday
+    const tzOffset = d.getTimezoneOffset() * 60000;
+    const localISOTime = (new Date(d - tzOffset)).toISOString().slice(0,16);
+    document.getElementById('pastSalesDate').value = localISOTime;
+    document.getElementById('pastSalesTitle').textContent = `🕰️ Add Past Sales Data (${currentTab === 'makanan' ? 'Food' : 'Drinks'})`;
+
+    const products = allProducts(currentTab);
+    const tbody = document.getElementById('pastSalesBody');
+    tbody.innerHTML = products.map((p, idx) => `
+        <tr>
+          <td class="s-no" style="color:var(--text-muted);font-size:0.85rem;">${idx + 1}</td>
+          <td class="s-name" style="font-weight:700;">${p.name}</td>
+          <td class="td-today">
+             <input type="number" class="qty-input past-qty-input" data-id="${p.id}" value="" placeholder="0" min="0" />
+          </td>
+        </tr>
+    `).join('');
+
+    document.getElementById('pastSalesModal').classList.add('show');
+};
+
+window.savePastSalesRecord = async function() {
+    const dateInput = document.getElementById('pastSalesDate').value;
+    if (!dateInput) return alert("Please select a date first!");
+    
+    const selectedDate = new Date(dateInput);
+    const dateStr = selectedDate.toLocaleString('id-ID', {
+        weekday:'long', year:'numeric', month:'long', day:'numeric', hour:'2-digit', minute:'2-digit'
+    });
+    const dateKey = `${selectedDate.getFullYear()}-${String(selectedDate.getMonth()+1).padStart(2,'0')}-${String(selectedDate.getDate()).padStart(2,'0')}`;
+
+    const entries = {};
+    document.querySelectorAll('.past-qty-input').forEach(input => {
+        const val = parseInt(input.value);
+        if (!isNaN(val) && val > 0) {
+            entries[input.getAttribute('data-id')] = val;
+        }
+    });
+
+    if (Object.keys(entries).length === 0) {
+        if (!confirm("No quantity added for any product. Save empty recap?")) return;
+    }
+
+    const btn = document.querySelector('#pastSalesModal .btn-primary');
+    btn.disabled = true;
+    btn.innerHTML = '☁️ Saving...';
+
+    const tab = currentTab;
+    const hist = tab === 'makanan' ? historyMakanan : historyMinuman;
+    
+    hist.push({ date: dateStr, dateKey, entries });
+    hist.sort((a, b) => {
+        const da = a.dateKey || "";
+        const db = b.dateKey || "";
+        return db.localeCompare(da);
+    });
+
+    await saveHistory(tab, hist);
+    
+    btn.disabled = false;
+    btn.innerHTML = '💾 Save Past Record';
+    document.getElementById('pastSalesModal').classList.remove('show');
+    alert("✅ Past sales record added successfully!");
+    
+    // Refresh history modal
+    document.getElementById('viewHistoryBtn').click();
 };
 
 // ── Weekly Download Reminder ──────────────────────────────────────────────────

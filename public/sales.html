@@ -139,11 +139,35 @@
     <div class="checkout-header">
       <h2 class="checkout-title" id="historyTitle">🗓️ Sales History</h2>
       <div style="display:flex;align-items:center;gap:12px;">
+        <button class="btn btn-ghost" onclick="openPastSalesEntry()" style="padding:6px 12px;color:var(--accent);border-color:rgba(99,179,237,0.3);font-size:0.8rem;">➕ Add Past Recap</button>
         <button class="btn btn-ghost" onclick="clearSalesHistory()" style="padding:6px 12px;color:#fc8181;border-color:rgba(229,62,62,0.3);font-size:0.8rem;">🗑️ Clear</button>
         <button class="modal-close" onclick="document.getElementById('historyModal').classList.remove('show')">✕</button>
       </div>
     </div>
     <div id="historyContainer" style="margin-top:16px;"></div>
+  </div>
+</div>
+
+<!-- Past Sales Modal -->
+<div id="pastSalesModal" class="modal-overlay">
+  <div class="checkout-panel" style="max-height:85vh;overflow-y:auto;text-align:left;max-width:860px;opacity:1!important;transform:none!important;">
+    <div class="checkout-header">
+      <h2 class="checkout-title" id="pastSalesTitle">🕰️ Add Past Sales Data</h2>
+      <button class="modal-close" onclick="document.getElementById('pastSalesModal').classList.remove('show')">✕</button>
+    </div>
+    <div style="margin-top:16px;">
+      <div class="form-group" style="margin-bottom:16px;">
+        <label style="font-weight:700;display:block;margin-bottom:8px;">Select Past Date & Time:</label>
+        <input type="datetime-local" id="pastSalesDate" class="modal-textarea" style="height:48px;padding:12px;font-weight:600;width:100%;" />
+      </div>
+      <div class="sales-table-wrapper">
+        <table class="sales-table">
+          <thead><tr><th>NO</th><th>PRODUCT NAME</th><th style="text-align:center;">QTY (SOLD)</th></tr></thead>
+          <tbody id="pastSalesBody"></tbody>
+        </table>
+      </div>
+      <button class="btn btn-primary" onclick="savePastSalesRecord()" style="width:100%;margin-top:16px;background:var(--accent);">💾 Save Past Record</button>
+    </div>
   </div>
 </div>
 
