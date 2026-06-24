@@ -89,8 +89,10 @@ app.get("/api/menu", async (req, res) => {
     // Snack intentionally kept as Food only — do NOT add it here.
     const DRINK_CATS = new Set([
       // Canonical (Title Case) — matches admin.html DRINK_CATEGORIES values
-      'Coffee', 'Non-Coffee', 'Tea', 'Juice', 'Squash', 'Blend', 'Water', 'Other Drink',
+      'Coffee Series', 'Signature Coffee', 'Non Coffee Series', 'Tea Series',
+      'Juice', 'Squash', 'Blend', 'Other Drink', 'Water',
       // Legacy lowercase (for old Supabase rows saved before standardization)
+      'coffee series', 'signature coffee', 'non coffee series', 'tea series',
       'coffee', 'non-coffee', 'kopi', 'tea', 'teh', 'juice', 'jus',
       'squash', 'blend', 'water', 'other drink', 'drink', 'minuman',
     ]);

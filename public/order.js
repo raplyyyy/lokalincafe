@@ -115,14 +115,15 @@ async function loadMenu() {
 // Client-side safety net: normalise any legacy / typo category to canonical value.
 // This prevents duplicate sections even if Supabase data has inconsistent case.
 const CANONICAL_CAT = {
-  // Coffee
-  'coffee': 'Coffee', 'coffee series': 'Coffee',
-  'signature coffee': 'Coffee', 'kopi': 'Coffee',
+  // Coffee Series
+  'coffee': 'Coffee Series', 'coffee series': 'Coffee Series', 'kopi': 'Coffee Series',
+  // Signature Coffee
+  'signature coffee': 'Signature Coffee', 'signature': 'Signature Coffee',
   // Non-Coffee
-  'non-coffee': 'Non-Coffee', 'non coffee': 'Non-Coffee',
-  'non coffee series': 'Non-Coffee', 'noncoffee': 'Non-Coffee',
-  // Tea
-  'tea': 'Tea', 'teh': 'Tea',
+  'non-coffee': 'Non Coffee Series', 'non coffee': 'Non Coffee Series',
+  'non coffee series': 'Non Coffee Series', 'noncoffee': 'Non Coffee Series',
+  // Tea Series
+  'tea': 'Tea Series', 'teh': 'Tea Series', 'tea series': 'Tea Series',
   // Juice
   'juice': 'Juice', 'jus': 'Juice',
   // Squash
