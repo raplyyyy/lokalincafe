@@ -135,7 +135,8 @@ const CANONICAL_CAT = {
   // Other Drink
   'other drink': 'Other Drink', 'drink': 'Other Drink', 'minuman': 'Other Drink',
   // Food
-  'main food': 'Main Food', 'rice bowl': 'Main Food',
+  'main food': 'Main Food',
+  'rice bowl': 'Rice Bowl',
   'snack': 'Snack', 'snacks': 'Snack',
   'pasta': 'Pasta',
   'dessert': 'Dessert',
