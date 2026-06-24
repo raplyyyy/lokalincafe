@@ -50,6 +50,27 @@
       0%, 100% { opacity: 1; }
       50%       { opacity: 0.2; }
     }
+
+    /* ── Cancel Order Button ── */
+    .btn-cancel {
+      width: 100%;
+      margin-top: 10px;
+      background: rgba(239, 68, 68, 0.08);
+      color: #ef4444;
+      border: 1.5px solid rgba(239, 68, 68, 0.3);
+      font-weight: 600;
+      letter-spacing: 0.2px;
+      transition: background 0.2s, border-color 0.2s, box-shadow 0.2s;
+    }
+    .btn-cancel:hover:not(:disabled) {
+      background: rgba(239, 68, 68, 0.18);
+      border-color: rgba(239, 68, 68, 0.6);
+      box-shadow: 0 0 14px rgba(239, 68, 68, 0.18);
+    }
+    .btn-cancel:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
   </style>
 </head>
 <body>
@@ -168,6 +189,9 @@
 
   <button class="btn btn-success" id="pay-btn" onclick="markPaid()">
     ✅ Paid — Mark as Paid
+  </button>
+  <button class="btn btn-cancel" id="cancel-btn" onclick="cancelOrder()">
+    🗑️ Cancel Order
   </button>
 </div>
 

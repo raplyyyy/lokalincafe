@@ -190,6 +190,13 @@ function connectWS() {
         // Sync toggle button if changed from another device
         _cashierOrderOpen = msg.open;
         updateToggleBtn(_cashierOrderOpen);
+      } else if (msg.type === "ORDER_CANCELLED") {
+        // Remove the cancelled order from local list immediately
+        activeOrders = activeOrders.filter(o => o.id !== msg.orderId);
+        renderOrderList();
+        renderKanban();
+        // Close detail panel if it was open for the cancelled order
+        if (selectedOrderId === msg.orderId) closeDetail();
       }
     } catch {}
   });
@@ -442,6 +449,42 @@ async function markPaid() {
     btn.textContent = "✅ Paid — Mark as Paid";
   }
 }
+
+// ─── Cancel Order ─────────────────────────────────────────────────────────────
+async function cancelOrder() {
+  if (!selectedOrderId) return;
+
+  const order = activeOrders.find(o => o.id === selectedOrderId);
+  if (!order) return;
+
+  // Build a short summary for the confirm dialog
+  const allItems = [...(order.foodItems || []), ...(order.drinkItems || [])];
+  const summary = allItems.map(i => `${i.name} ×${i.qty}`).join(', ');
+  const msg = `❗ Cancel order for Table ${order.tableNumber}?\n\nItems: ${summary}\n\nStock will be restored automatically.`;
+
+  if (!confirm(msg)) return;
+
+  const payBtn    = document.getElementById('pay-btn');
+  const cancelBtn = document.getElementById('cancel-btn');
+  if (cancelBtn) { cancelBtn.disabled = true; cancelBtn.textContent = '⏳ Cancelling…'; }
+  if (payBtn)    { payBtn.disabled = true; }
+
+  try {
+    const res = await fetch(`/api/orders/${selectedOrderId}`, { method: 'DELETE' });
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.error || 'Server error');
+    }
+    closeDetail();
+    await loadOrders();
+    showToast(`🗑️ Order Table ${order.tableNumber} cancelled & stock restored`);
+  } catch (err) {
+    showToast(`❌ Failed to cancel: ${err.message}`);
+    if (cancelBtn) { cancelBtn.disabled = false; cancelBtn.textContent = '🗑️ Cancel Order'; }
+    if (payBtn)    { payBtn.disabled = false; }
+  }
+}
+
 
 // ─── Notification Sound ───────────────────────────────────────────────────────
 let audioUnlocked = false;

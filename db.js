@@ -90,6 +90,45 @@ async function updateDrinkStatus(id, drinkStatus) {
   return mapOrder(data);
 }
 
+async function cancelOrder(id) {
+  // 1. Fetch the order first to know which items to restore
+  const order = await getOrderById(id);
+  if (!order) throw new Error('Order not found');
+
+  const allItems = [...(order.foodItems || []), ...(order.drinkItems || [])];
+
+  // 2. Restore stock for each item (best-effort, non-blocking on individual failures)
+  for (const ordered of allItems) {
+    try {
+      const baseId = ordered.id
+        ? ordered.id.replace(/_Hot$|_Cold$|_[A-Za-z ]+$/, '')
+        : null;
+      if (!baseId) continue;
+
+      const { data: menuItem } = await supabase
+        .from('menu').select('stock').eq('id', baseId).single();
+
+      if (menuItem) {
+        const restoredStock = (menuItem.stock ?? 0) + (ordered.qty || 1);
+        await supabase.from('menu')
+          .update({ stock: restoredStock })
+          .eq('id', baseId);
+      }
+    } catch (e) {
+      console.warn(`[cancelOrder] Could not restore stock for item ${ordered.id}:`, e.message);
+    }
+  }
+
+  // 3. Delete the order
+  const { error } = await supabase.from('orders').delete().eq('id', id);
+  if (error) {
+    console.error('Cancel order error:', error);
+    throw error;
+  }
+
+  return { success: true, cancelledId: id };
+}
+
 // Helper to map Supabase naming to expected frontend naming
 function mapOrder(order) {
   return {
@@ -105,4 +144,4 @@ function mapOrder(order) {
   };
 }
 
-module.exports = { initDB, createOrder, getAllActiveOrders, getOrderById, markAsPaid, updateDrinkStatus, supabase };
+module.exports = { initDB, createOrder, getAllActiveOrders, getOrderById, markAsPaid, updateDrinkStatus, cancelOrder, supabase };

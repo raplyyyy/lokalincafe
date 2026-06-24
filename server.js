@@ -6,7 +6,7 @@ const cors = require("cors");
 const fs = require("fs");
 
 const config = require("./config");
-const { initDB, createOrder, getAllActiveOrders, getOrderById, markAsPaid, updateDrinkStatus, supabase } = require("./db");
+const { initDB, createOrder, getAllActiveOrders, getOrderById, markAsPaid, updateDrinkStatus, cancelOrder, supabase } = require("./db");
 const { printKitchenOrder } = require("./printer");
 
 const app = express();
@@ -187,6 +187,20 @@ app.patch("/api/orders/:id/pay", async (req, res) => {
     res.status(500).json({ error: "Failed to update order" });
   }
 });
+
+// DELETE /api/orders/:id → cancel order + restore stock
+app.delete("/api/orders/:id", async (req, res) => {
+  try {
+    const result = await cancelOrder(parseInt(req.params.id));
+    broadcast({ type: "ORDER_CANCELLED", orderId: parseInt(req.params.id) });
+    console.log(`[API] Order #${req.params.id} cancelled`);
+    res.json(result);
+  } catch (err) {
+    console.error("[API] DELETE /api/orders error:", err);
+    res.status(500).json({ error: err.message || "Failed to cancel order" });
+  }
+});
+
 
 // PATCH /api/orders/:id/drink-status
 app.patch("/api/orders/:id/drink-status", async (req, res) => {
