@@ -39,7 +39,6 @@ function showClosedOverlay() {
 function hideClosedOverlay() {
   const overlay = document.getElementById('order-closed-overlay');
   if (overlay) overlay.classList.remove('visible');
-  }
 }
 // ─────────────────────────────────────────────────────────────────────────────────
 
