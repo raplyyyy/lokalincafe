@@ -111,6 +111,42 @@ async function loadMenu() {
 }
 
 // ─── Render ───────────────────────────────────────────────────────────────────
+
+// Client-side safety net: normalise any legacy / typo category to canonical value.
+// This prevents duplicate sections even if Supabase data has inconsistent case.
+const CANONICAL_CAT = {
+  // Coffee
+  'coffee': 'Coffee', 'coffee series': 'Coffee',
+  'signature coffee': 'Coffee', 'kopi': 'Coffee',
+  // Non-Coffee
+  'non-coffee': 'Non-Coffee', 'non coffee': 'Non-Coffee',
+  'non coffee series': 'Non-Coffee', 'noncoffee': 'Non-Coffee',
+  // Tea
+  'tea': 'Tea', 'teh': 'Tea',
+  // Juice
+  'juice': 'Juice', 'jus': 'Juice',
+  // Squash
+  'squash': 'Squash',
+  // Blend
+  'blend': 'Blend',
+  // Water
+  'water': 'Water',
+  // Other Drink
+  'other drink': 'Other Drink', 'drink': 'Other Drink', 'minuman': 'Other Drink',
+  // Food
+  'main food': 'Main Food', 'rice bowl': 'Main Food',
+  'snack': 'Snack', 'snacks': 'Snack',
+  'pasta': 'Pasta',
+  'dessert': 'Dessert',
+  'paket': 'Paket',
+};
+
+function normaliseCategory(raw) {
+  if (!raw) return 'Other';
+  const key = raw.trim().toLowerCase();
+  return CANONICAL_CAT[key] || raw.trim(); // if already canonical, keep as-is
+}
+
 function renderMenuList(containerId, items, icons) {
   const el = document.getElementById(containerId);
   if (!items || items.length === 0) {
@@ -120,7 +156,7 @@ function renderMenuList(containerId, items, icons) {
 
   const grouped = {};
   items.forEach(item => {
-    const cat = item.category || "Other";
+    const cat = normaliseCategory(item.category);
     if (!grouped[cat]) grouped[cat] = [];
     grouped[cat].push(item);
   });
@@ -146,6 +182,7 @@ function renderMenuList(containerId, items, icons) {
 
   el.innerHTML = pillsHtml + html;
 }
+
 
 function menuItemHTML(item, fallbackIconSvg) {
   const media = item.image
