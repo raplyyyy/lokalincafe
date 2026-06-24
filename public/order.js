@@ -1,4 +1,4 @@
-// ─── State ────────────────────────────────────────────────────────────────────
+// ─── State ────────────────────────────────────────────────────────────────────────────────
 let tableNumber = null;
 let cart = {};      // { itemId_Hot / itemId_Cold / itemId: { ...item, qty } }
 let menu = { food: [], drinks: [] };
@@ -6,6 +6,103 @@ let menu = { food: [], drinks: [] };
 // Hot/cold pending state
 let pendingHotCold = null; // { item, delta }
 let pendingVariant = null;
+
+// ─── Order Closing Timer (WITA = UTC+8) ───────────────────────────────────────────────────
+/**
+ * Returns current date/time in WITA (UTC+8) as a Date object.
+ * WITA = Waktu Indonesia Tengah = UTC+8
+ */
+function getWITANow() {
+  const now = new Date();
+  // Shift to UTC+8
+  const utcMs = now.getTime() + now.getTimezoneOffset() * 60000;
+  return new Date(utcMs + 8 * 3600000);
+}
+
+/**
+ * Returns true if ordering is currently CLOSED based on WITA time.
+ */
+function isOrderingClosed() {
+  const wita = getWITANow();
+  const day  = wita.getDay();  // 0=Sun, 1=Mon, ..., 5=Fri, 6=Sat
+  const hour = wita.getHours();
+
+  if (day === 6) {
+    // Saturday: open all day (never closes until midnight/Sunday)
+    return false;
+  } else {
+    // All other days (including Sunday): close at 23:00 WITA
+    return hour >= 23;
+  }
+}
+
+/**
+ * Returns a human-readable string for the closing time on the current day.
+ */
+function getCloseTimeLabel() {
+  const wita = getWITANow();
+  const day  = wita.getDay();
+  if (day === 6) {
+    return "Orders close at 00:00 WITA (midnight)";
+  } else {
+    return "Orders close at 23:00 WITA";
+  }
+}
+
+/** Shows the full-screen closed overlay and disables the cart button. */
+function showClosedOverlay() {
+  const overlay = document.getElementById('order-closed-overlay');
+  if (!overlay) return;
+
+  // Update texts
+  const scheduleEl = document.getElementById('closed-schedule-text');
+  if (scheduleEl) scheduleEl.textContent = getCloseTimeLabel();
+
+  const clockEl = document.getElementById('closed-current-time');
+  if (clockEl) {
+    const wita = getWITANow();
+    const hh = String(wita.getHours()).padStart(2, '0');
+    const mm = String(wita.getMinutes()).padStart(2, '0');
+    clockEl.textContent = `${hh}:${mm}`;
+  }
+
+  overlay.classList.add('visible');
+
+  // Also disable the order button
+  const btn = document.getElementById('place-order-btn');
+  if (btn) btn.disabled = true;
+}
+
+/** Hides the closed overlay (used if page is opened before cut-off). */
+function hideClosedOverlay() {
+  const overlay = document.getElementById('order-closed-overlay');
+  if (overlay) overlay.classList.remove('visible');
+  const btn = document.getElementById('place-order-btn');
+  if (btn) btn.disabled = false;
+}
+
+/** Ticks the live clock on the closed overlay every second when visible. */
+function tickClosedClock() {
+  const overlay = document.getElementById('order-closed-overlay');
+  if (!overlay || !overlay.classList.contains('visible')) return;
+  const clockEl = document.getElementById('closed-current-time');
+  if (!clockEl) return;
+  const wita = getWITANow();
+  const hh = String(wita.getHours()).padStart(2, '0');
+  const mm = String(wita.getMinutes()).padStart(2, '0');
+  const ss = String(wita.getSeconds()).padStart(2, '0');
+  clockEl.textContent = `${hh}:${mm}:${ss}`;
+}
+
+/** Main periodic check — runs once on load and every 60 seconds. */
+function checkOrderWindow() {
+  if (isOrderingClosed()) {
+    showClosedOverlay();
+  } else {
+    hideClosedOverlay();
+  }
+}
+// ─────────────────────────────────────────────────────────────────────────────────
 
 const FOOD_FALLBACKS = [
   `<svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></svg>`
@@ -28,6 +125,14 @@ window.addEventListener("DOMContentLoaded", async () => {
   }
 
   await loadMenu();
+
+  // ─── Order Closing Timer ───
+  // Check immediately on page load
+  checkOrderWindow();
+  // Re-check every 30 seconds for time changes
+  setInterval(checkOrderWindow, 30 * 1000);
+  // Tick the live clock every second (only visible when overlay is shown)
+  setInterval(tickClosedClock, 1000);
 });
 
 function promptTableNumber() {
@@ -143,6 +248,9 @@ function menuItemHTML(item, fallbackIconSvg) {
 
 // ─── Cart Logic ───────────────────────────────────────────────────────────────
 function changeQty(itemId, delta) {
+  // Block all add operations when ordering is closed
+  if (isOrderingClosed() && delta > 0) return;
+
   let parsed = menu.food.find(i => i.id == itemId) || menu.drinks.find(i => i.id == itemId);
   if (!parsed) return;
 

@@ -7,6 +7,77 @@
   <title>Order — Lokalin</title>
   <meta name="description" content="Order food and drinks directly from your table." />
   <link rel="stylesheet" href="/style.css?v=14" />
+  <style>
+    /* ── Order Closed Overlay ── */
+    #order-closed-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      background: rgba(10, 10, 15, 0.96);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 32px;
+      animation: fadeInOverlay 0.5s ease;
+    }
+    #order-closed-overlay.visible {
+      display: flex;
+    }
+    @keyframes fadeInOverlay {
+      from { opacity: 0; transform: scale(0.97); }
+      to   { opacity: 1; transform: scale(1); }
+    }
+    .closed-icon {
+      font-size: 4.5rem;
+      margin-bottom: 20px;
+      animation: pulse 2.5s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50%       { transform: scale(1.08); }
+    }
+    .closed-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 2rem;
+      font-weight: 800;
+      color: #fff;
+      margin-bottom: 12px;
+      letter-spacing: -0.5px;
+    }
+    .closed-subtitle {
+      font-size: 1rem;
+      color: rgba(255,255,255,0.55);
+      max-width: 320px;
+      line-height: 1.6;
+      margin-bottom: 28px;
+    }
+    .closed-time-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255,94,58,0.15);
+      border: 1px solid rgba(255,94,58,0.4);
+      color: #ff5e3a;
+      padding: 10px 22px;
+      border-radius: 50px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+    .closed-clock {
+      font-size: 0.85rem;
+      color: rgba(255,255,255,0.3);
+      margin-top: 16px;
+    }
+    .closed-clock span {
+      color: rgba(255,255,255,0.55);
+      font-weight: 600;
+    }
+  </style>
 </head>
 
 <body>
@@ -106,6 +177,19 @@
         Order Now
       </button>
     </div>
+  </div>
+
+  <!-- ── Order Closed Overlay ── -->
+  <div id="order-closed-overlay">
+    <div class="closed-icon">🔒</div>
+    <div class="closed-title">We're Closed for Orders</div>
+    <div class="closed-subtitle">
+      Online ordering is not available right now. Please come back during our operating hours.
+    </div>
+    <div class="closed-time-badge">
+      🕐 <span id="closed-schedule-text">Orders close at 23:00 WITA</span>
+    </div>
+    <div class="closed-clock">Current time (WITA): <span id="closed-current-time">--:--</span></div>
   </div>
 
   <!-- ── Confirmation Screen ── -->
