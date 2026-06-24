@@ -120,7 +120,36 @@ async function cloudPost(key, data) {
     } catch(e) { console.error('cloudPost failed', key, e); }
 }
 
-// ── Draft (today's inputs) ────────────────────────────────────────────────────
+// ── Product Config (customProducts + deletedProducts) ───────────────────────────────────
+// These are PERSISTENT config (not daily data) and must never be wiped by date checks.
+async function saveProductConfig() {
+    const payload = { customProducts, deletedProducts };
+    localStorage.setItem('lokalin_product_config', JSON.stringify(payload));
+    await cloudPost('product_config', payload);
+}
+
+async function loadProductConfig() {
+    // Try cloud first
+    const cloud = await cloudGet('product_config');
+    if (cloud) {
+        if (cloud.customProducts) customProducts = cloud.customProducts;
+        if (cloud.deletedProducts) deletedProducts = cloud.deletedProducts;
+        return;
+    }
+    // Fallback: local storage
+    const local = localStorage.getItem('lokalin_product_config');
+    if (local) {
+        try {
+            const d = JSON.parse(local);
+            if (d.customProducts) customProducts = d.customProducts;
+            if (d.deletedProducts) deletedProducts = d.deletedProducts;
+            // Push to cloud so it's synced going forward
+            await cloudPost('product_config', { customProducts, deletedProducts });
+        } catch(e) {}
+    }
+}
+
+// ── Draft (today's qty entries only) ───────────────────────────────────────────────────
 function saveDraftDebounced() {
     clearTimeout(draftTimeout);
     draftTimeout = setTimeout(() => flushDraft(), 2000);
@@ -146,8 +175,8 @@ async function flushDraft() {
         }
     }
 
-    // Include today's date so stale drafts from previous days can be detected on load
-    const payload = { todayEntries, customProducts, deletedProducts, todayOmzet, draftDate: todayDateKey() };
+    // Draft only contains daily qty entries — NOT customProducts/deletedProducts
+    const payload = { todayEntries, todayOmzet, draftDate: todayDateKey() };
     localStorage.setItem('lokalin_sales_draft', JSON.stringify(payload));
     await cloudPost('draft', payload);
 }
@@ -156,11 +185,9 @@ async function loadDraft() {
     const today = todayDateKey();
     const cloud = await cloudGet('draft');
 
-    // Accept cloud draft only if it belongs to TODAY — discard stale drafts from previous days
+    // Accept cloud draft only if it belongs to TODAY
     if (cloud && cloud.todayEntries && cloud.draftDate === today) {
         todayEntries = cloud.todayEntries;
-        if (cloud.customProducts) customProducts = cloud.customProducts;
-        if (cloud.deletedProducts) deletedProducts = cloud.deletedProducts;
         return;
     }
 
@@ -171,19 +198,13 @@ async function loadDraft() {
             const d = JSON.parse(local);
             if (d.todayEntries && d.draftDate === today) {
                 todayEntries = d.todayEntries;
-                if (d.customProducts) customProducts = d.customProducts;
-                if (d.deletedProducts) deletedProducts = d.deletedProducts;
                 // Push local to cloud since cloud was stale/missing
-                await cloudPost('draft', { ...d, draftDate: today });
-                return;
+                await cloudPost('draft', { todayEntries, draftDate: today });
             }
-            // Keep customProducts / deletedProducts even if date doesn't match (they're persistent config)
-            if (d.customProducts) customProducts = d.customProducts;
-            if (d.deletedProducts) deletedProducts = d.deletedProducts;
+            // If date doesn't match: fresh day — todayEntries stays empty (default)
         } catch(e) {}
     }
-
-    // If we reach here, it's a fresh new day — todayEntries stays empty (default)
+    // No else: fresh new day → todayEntries stays empty
 }
 
 // ── History ───────────────────────────────────────────────────────────────────
@@ -281,6 +302,7 @@ function attachListeners() {
                         deletedProducts[currentTab].push(id);
                     }
                     delete todayEntries[currentTab]?.[id];
+                    saveProductConfig(); // save persistent config separately
                     flushDraft();
                     renderTable();
                 }
@@ -307,6 +329,7 @@ window.addProduct = function() {
     const newId = Date.now();
     customProducts[currentTab].push({ id: newId, name });
     document.getElementById('inp-name').value = '';
+    saveProductConfig(); // save persistent config
     flushDraft();
     renderTable();
 };
@@ -350,7 +373,7 @@ document.getElementById('closeDayBtn').addEventListener('click', async () => {
             // 4. Flush cleared draft — use both fetch AND sendBeacon for reliability
             await flushDraft();
             // Beacon backup: ensures the clear reaches the server even if the user closes quickly
-            const clearedPayload = JSON.stringify({ todayEntries, customProducts, deletedProducts, todayOmzet: 0, draftDate: todayDateKey() });
+            const clearedPayload = JSON.stringify({ todayEntries, todayOmzet: 0, draftDate: todayDateKey() });
             navigator.sendBeacon('/api/sales/draft', new Blob([clearedPayload], { type: 'application/json' }));
 
             renderTable();
@@ -374,9 +397,14 @@ document.getElementById('closeDayBtn').addEventListener('click', async () => {
 function flushDraftOnExit() {
     clearTimeout(draftTimeout);
     const savedAt = todayDateKey();
-    const payload = JSON.stringify({ todayEntries, customProducts, deletedProducts, draftDate: savedAt });
-    localStorage.setItem('lokalin_sales_draft', payload);
-    navigator.sendBeacon('/api/sales/draft', new Blob([payload], { type: 'application/json' }));
+    // Draft: only qty entries
+    const draftPayload = JSON.stringify({ todayEntries, draftDate: savedAt });
+    localStorage.setItem('lokalin_sales_draft', draftPayload);
+    navigator.sendBeacon('/api/sales/draft', new Blob([draftPayload], { type: 'application/json' }));
+    // Product config: always saved separately
+    const configPayload = JSON.stringify({ customProducts, deletedProducts });
+    localStorage.setItem('lokalin_product_config', configPayload);
+    navigator.sendBeacon('/api/sales/product_config', new Blob([configPayload], { type: 'application/json' }));
 }
 
 window.addEventListener('beforeunload', flushDraftOnExit);
@@ -721,7 +749,8 @@ async function loadPriceMap() {
 async function initSalesData() {
     await Promise.all([
         loadPriceMap(),
-        loadDraft(),
+        loadProductConfig(), // load persistent product config FIRST (independent of date)
+        loadDraft(),         // then load today's qty entries
         loadHistory('makanan'),
         loadHistory('minuman')
     ]);
