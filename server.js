@@ -27,6 +27,26 @@ app.get("/sales",     (req, res) => res.sendFile(path.join(__dirname, "public/sa
 app.get("/dashboard", (req, res) => res.sendFile(path.join(__dirname, "public/dashboard.html")));
 app.get("/qrcodes",   (req, res) => res.sendFile(path.join(__dirname, "public/qrcodes.html")));
 
+// ─── Order Open/Close State ───────────────────────────────────────────────────
+let orderOpen = true; // true = accepting orders, false = closed
+
+// GET /api/order-status → returns { open: true/false }
+app.get("/api/order-status", (req, res) => {
+  res.json({ open: orderOpen });
+});
+
+// POST /api/order-status → body: { open: true/false }
+app.post("/api/order-status", (req, res) => {
+  const { open } = req.body;
+  if (typeof open !== "boolean") {
+    return res.status(400).json({ error: "Body must be { open: true|false }" });
+  }
+  orderOpen = open;
+  broadcast({ type: "ORDER_STATUS", open });
+  console.log(`[ORDER] Ordering is now ${open ? "OPEN ✅" : "CLOSED 🔒"}`);
+  res.json({ success: true, open });
+});
+
 // ─── WebSocket ────────────────────────────────────────────────────────────────
 
 const clients = new Set();

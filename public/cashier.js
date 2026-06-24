@@ -3,17 +3,68 @@ let activeOrders = [];
 let selectedOrderId = null;
 let ws = null;
 let currentTab = 'cashier';
+let _cashierOrderOpen = true; // local mirror of server order status
 
 // ─── Init ─────────────────────────────────────────────────────────────────────
 window.addEventListener("DOMContentLoaded", () => {
   loadOrders();
   connectWS();
+  loadOrderStatus(); // load open/close state on start
   if ("Notification" in window && Notification.permission !== "granted" && Notification.permission !== "denied") {
     Notification.requestPermission();
   }
   // Auto-refresh every 30s
   setInterval(loadOrders, 30000);
 });
+
+// ─── Order Open / Close ───────────────────────────────────────────────────────
+async function loadOrderStatus() {
+  try {
+    const res = await fetch('/api/order-status');
+    const data = await res.json();
+    _cashierOrderOpen = data.open;
+    updateToggleBtn(_cashierOrderOpen);
+  } catch (e) {
+    console.warn('[Cashier] Could not fetch order status', e);
+  }
+}
+
+function updateToggleBtn(isOpen) {
+  const btn   = document.getElementById('order-toggle-btn');
+  const label = document.getElementById('order-toggle-label');
+  if (!btn || !label) return;
+  if (isOpen) {
+    btn.className = 'open';
+    label.textContent = 'Order: OPEN';
+  } else {
+    btn.className = 'closed';
+    label.textContent = 'Order: CLOSED';
+  }
+}
+
+async function toggleOrderStatus() {
+  const newState = !_cashierOrderOpen;
+  const msg = newState
+    ? '✅ Open ordering — customers can place orders again?'
+    : '🔒 Close ordering — customers will not be able to order?';
+
+  if (!confirm(msg)) return;
+
+  try {
+    const res = await fetch('/api/order-status', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ open: newState })
+    });
+    if (!res.ok) throw new Error('Server error');
+    _cashierOrderOpen = newState;
+    updateToggleBtn(_cashierOrderOpen);
+    showToast(newState ? '✅ Order is now OPEN' : '🔒 Order is now CLOSED');
+  } catch (e) {
+    showToast('❌ Failed to update order status');
+  }
+}
+
 
 // ─── Stock Management ───────────────────────────────────────────────────────
 async function loadStock() {
@@ -135,6 +186,10 @@ function connectWS() {
           }
         }
         loadOrders();
+      } else if (msg.type === "ORDER_STATUS") {
+        // Sync toggle button if changed from another device
+        _cashierOrderOpen = msg.open;
+        updateToggleBtn(_cashierOrderOpen);
       }
     } catch {}
   });

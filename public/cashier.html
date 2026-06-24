@@ -7,6 +7,50 @@
   <meta name="description" content="Integrated dashboard for bar and cashier." />
   <link rel="stylesheet" href="/style.css?v=13" />
   <script src="/pin.js"></script>
+  <style>
+    /* ── Order Toggle Button ── */
+    #order-toggle-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 16px;
+      border-radius: 50px;
+      border: none;
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.82rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.25s, color 0.25s, box-shadow 0.25s;
+      letter-spacing: 0.3px;
+      white-space: nowrap;
+    }
+    #order-toggle-btn.open {
+      background: rgba(34, 197, 94, 0.15);
+      color: #22c55e;
+      border: 1.5px solid rgba(34, 197, 94, 0.4);
+      box-shadow: 0 0 12px rgba(34, 197, 94, 0.15);
+    }
+    #order-toggle-btn.closed {
+      background: rgba(255, 94, 58, 0.15);
+      color: #ff5e3a;
+      border: 1.5px solid rgba(255, 94, 58, 0.4);
+      box-shadow: 0 0 12px rgba(255, 94, 58, 0.15);
+    }
+    #order-toggle-btn .toggle-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: currentColor;
+      animation: blink-dot 1.5s ease-in-out infinite;
+    }
+    #order-toggle-btn.open .toggle-dot {
+      animation: none;
+    }
+    @keyframes blink-dot {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0.2; }
+    }
+  </style>
 </head>
 <body>
 
@@ -23,13 +67,19 @@
       </div>
     </div>
   </div>
-  <button class="refresh-btn" id="refresh-btn" onclick="loadOrders()">
-    <svg id="refresh-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-      <path d="M23 4v6h-6M1 20v-6h6"/>
-      <path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/>
-    </svg>
-    Refresh
-  </button>
+  <div style="display:flex; align-items:center; gap:8px;">
+    <button id="order-toggle-btn" class="open" onclick="toggleOrderStatus()">
+      <span class="toggle-dot"></span>
+      <span id="order-toggle-label">Order: OPEN</span>
+    </button>
+    <button class="refresh-btn" id="refresh-btn" onclick="loadOrders()">
+      <svg id="refresh-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <path d="M23 4v6h-6M1 20v-6h6"/>
+        <path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/>
+      </svg>
+      Refresh
+    </button>
+  </div>
 </div>
 
 <div class="tabs-wrapper">
