@@ -88,10 +88,6 @@ app.get("/api/menu", async (req, res) => {
     // Uses exact match on canonical Title Case values + legacy lowercase aliases.
     // Snack intentionally kept as Food only — do NOT add it here.
     const DRINK_CATS = new Set([
-      // Canonical (Title Case) — matches admin.html DRINK_CATEGORIES values
-      'Coffee Series', 'Signature Coffee', 'Non Coffee Series', 'Tea Series',
-      'Juice', 'Squash', 'Blend', 'Other Drink', 'Water',
-      // Legacy lowercase (for old Supabase rows saved before standardization)
       'coffee series', 'signature coffee', 'non coffee series', 'tea series',
       'coffee', 'non-coffee', 'kopi', 'tea', 'teh', 'juice', 'jus',
       'squash', 'blend', 'water', 'other drink', 'drink', 'minuman',
@@ -101,7 +97,7 @@ app.get("/api/menu", async (req, res) => {
     for (const item of data) {
       if (item.id.startsWith('SYS_')) continue;
       if (item.category === 'System') continue;
-      const cat = (item.category || "").trim(); // preserve case for exact match
+      const cat = (item.category || "").trim().toLowerCase();
       if (DRINK_CATS.has(cat)) {
         menu.drinks.push(item);
       } else {
