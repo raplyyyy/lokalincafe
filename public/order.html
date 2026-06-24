@@ -159,7 +159,10 @@
       
       <div id="checkout-items-list" class="checkout-items-list" style="margin-bottom: 16px; display:flex; flex-direction:column; gap:8px;"></div>
 
-      <label for="modal-note" class="modal-label">📝 Additional Notes (Optional)</label>
+      <label for="customer-name" class="modal-label" style="text-align: left; margin-bottom: 6px;">👤 Customer Name (Required)</label>
+      <input type="text" id="customer-name" class="modal-textarea" style="height: 48px; margin-bottom: 16px;" placeholder="What should we call you?" required />
+
+      <label for="modal-note" class="modal-label" style="text-align: left; margin-bottom: 6px;">📝 Additional Notes (Optional)</label>
       <textarea id="modal-note" class="modal-textarea" placeholder="e.g., Less sugar for coffee, no pickles for burger..." rows="3"></textarea>
       <button class="btn btn-primary checkout-submit" onclick="placeOrder()">Send Order Now</button>
     </div>
@@ -207,7 +210,7 @@
 
 
 
-  <script src="/order.js?v=7"></script>
+  <script src="/order.js?v=8"></script>
 </body>
 
 </html>

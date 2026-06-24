@@ -455,8 +455,21 @@ async function placeOrder() {
   const totalPrice = subtotal + tax;
 
   const btn = document.getElementById("place-order-btn");
+  
+  const customerNameInput = document.getElementById('customer-name');
+  const customerName = customerNameInput ? customerNameInput.value.trim() : "";
+  
+  if (!customerName) {
+    alert("Please enter your name before placing the order.");
+    if (customerNameInput) customerNameInput.focus();
+    return;
+  }
+
   btn.disabled = true;
   btn.textContent = "⏳ Sending...";
+
+  const rawNote = document.getElementById('modal-note')?.value.trim() || "";
+  const finalNote = rawNote ? `Name: ${customerName}\nNote: ${rawNote}` : `Name: ${customerName}`;
 
   try {
     const res = await fetch("/api/order", {
@@ -467,7 +480,7 @@ async function placeOrder() {
         foodItems: allFood, 
         drinkItems: allDrinks, 
         totalPrice,
-        note: document.getElementById('modal-note')?.value || ""
+        note: finalNote
       }),
     });
 
@@ -476,6 +489,9 @@ async function placeOrder() {
     closeCheckoutModal();
     document.getElementById("confirm-screen").classList.add("show");
     cart = {};
+    if (customerNameInput) customerNameInput.value = "";
+    const noteInput = document.getElementById('modal-note');
+    if (noteInput) noteInput.value = "";
     updateCartBar();
   } catch (err) {
     alert("Failed to send order. Please try again.");
