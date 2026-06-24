@@ -100,7 +100,7 @@ function readLocalTab(key) {
                 return { items: data, savedAt: 1 };
             }
         }
-    } catch(e) {}
+    } catch (e) { }
     return null;
 }
 
@@ -113,7 +113,7 @@ async function fetchCloudTab(url) {
                 return { items: data.items, savedAt: parseTimestampSafe(data.savedAt) };
             }
         }
-    } catch (e) {}
+    } catch (e) { }
     return null;
 }
 
@@ -128,9 +128,9 @@ async function pushToCloud(url, items, savedAt) {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
-        }).catch(() => {});
+        }).catch(() => { });
         return payload;
-    } catch(e) {}
+    } catch (e) { }
     return null;
 }
 
@@ -195,7 +195,7 @@ async function initStockData() {
                     pushToCloud('/api/stock/data_bar', old.bar, new Date().toISOString());
                 }
             }
-        } catch(e) {}
+        } catch (e) { }
     }
 
     renderTable();
@@ -235,7 +235,7 @@ function saveData() {
     const savedAt = new Date().toISOString();
     const items = tab === 'kitchen' ? stockData.kitchen : stockData.bar;
     const localKey = tab === 'kitchen' ? 'lokalin_kitchen_stock_data' : 'lokalin_bar_stock_data_v2';
-    
+
     // Write to localStorage with timestamp
     writeLocal(localKey, items, savedAt);
 
@@ -245,10 +245,10 @@ function saveData() {
         try {
             const url = tab === 'kitchen' ? '/api/stock/data_kitchen' : '/api/stock/data_bar';
             await pushToCloud(url, items, savedAt);
-            document.getElementById('add-title').innerHTML = tab === 'kitchen' 
-                ? '🍳 Add Menu (Synced ☁️)' 
+            document.getElementById('add-title').innerHTML = tab === 'kitchen'
+                ? '🍳 Add Menu (Synced ☁️)'
                 : '🍹 Add Menu (Synced ☁️)';
-        } catch(e) { console.error('Cloud sync failed'); }
+        } catch (e) { console.error('Cloud sync failed'); }
     }, 2000);
 }
 
@@ -592,7 +592,7 @@ function attachInputListeners() {
 window.addStockItem = function () {
     const nameInput = document.getElementById('inp-name');
     const initialInput = document.getElementById('inp-initial');
-
+    kok
     const name = nameInput.value.trim();
     const initial = parseInt(initialInput.value) || 0;
 
@@ -621,11 +621,11 @@ window.clearForm = function () {
 };
 
 // ── Add Past Stock Record ──────────────────────────────────────────────────────
-window.openPastStockEntry = function() {
+window.openPastStockEntry = function () {
     const d = new Date();
     d.setDate(d.getDate() - 1); // default yesterday
     const tzOffset = d.getTimezoneOffset() * 60000;
-    const localISOTime = (new Date(d - tzOffset)).toISOString().slice(0,16);
+    const localISOTime = (new Date(d - tzOffset)).toISOString().slice(0, 16);
     document.getElementById('pastStockDate').value = localISOTime;
     document.getElementById('pastStockTitle').textContent = `🕰️ Add Past Stock Data (${currentTab.toUpperCase()})`;
 
@@ -638,7 +638,7 @@ window.openPastStockEntry = function() {
 
     const tbody = document.getElementById('pastStockBody');
     const items = stockData[currentTab];
-    
+
     tbody.innerHTML = items.map((item, idx) => {
         return `
         <tr>
@@ -654,25 +654,25 @@ window.openPastStockEntry = function() {
     document.getElementById('pastStockModal').classList.add('show');
 };
 
-window.savePastStockRecord = async function() {
+window.savePastStockRecord = async function () {
     const dateInput = document.getElementById('pastStockDate').value;
     if (!dateInput) return alert("Please select a date first!");
-    
+
     const selectedDate = new Date(dateInput);
     const dateStr = selectedDate.toLocaleString('id-ID', {
-        weekday:'long', year:'numeric', month:'long', day:'numeric', hour:'2-digit', minute:'2-digit'
+        weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
     });
 
     const items = stockData[currentTab];
     const snapshot = [];
-    
+
     const rows = document.getElementById('pastStockBody').querySelectorAll('tr');
     rows.forEach((row, i) => {
         const init = parseInt(row.querySelector('.p-init').value) || 0;
         const inQty = parseInt(row.querySelector('.p-in').value) || 0;
         const outQty = parseInt(row.querySelector('.p-out').value) || 0;
         const spoil = parseInt(row.querySelector('.p-spoil').value) || 0;
-        
+
         let finalStock;
         if (currentTab === 'bar') {
             finalStock = spoil; // In Bar, spoil is the actual physical balance
@@ -696,21 +696,21 @@ window.savePastStockRecord = async function() {
 
     const history = await getHistory();
     history.push({ date: dateStr, items: snapshot });
-    
-    history.sort((a,b) => {
-       const da = parseLocaleDate(a.date) || a.date;
-       const db = parseLocaleDate(b.date) || b.date;
-       // If parse fails, fallback to string comparison (it might be brittle but works for recent dates)
-       return db.localeCompare(da);
+
+    history.sort((a, b) => {
+        const da = parseLocaleDate(a.date) || a.date;
+        const db = parseLocaleDate(b.date) || b.date;
+        // If parse fails, fallback to string comparison (it might be brittle but works for recent dates)
+        return db.localeCompare(da);
     });
 
     await saveHistory(history);
-    
+
     btn.disabled = false;
     btn.innerHTML = '💾 Save Past Record';
     document.getElementById('pastStockModal').classList.remove('show');
     alert("✅ Past stock record added successfully!");
-    
+
     // Refresh modal
     if (typeof loadHistoryModal === "function") {
         loadHistoryModal();
@@ -1027,7 +1027,7 @@ viewHistoryBtn.addEventListener('click', async () => {
 });
 
 // Refresh Data dari Cloud
-window.refreshStockData = async function() {
+window.refreshStockData = async function () {
     const btn = document.getElementById('refreshDataBtn');
     if (!btn) return;
 
@@ -1041,7 +1041,7 @@ window.refreshStockData = async function() {
         ]);
 
         let success = false;
-        
+
         if (resK.ok) {
             const cloudKitchen = await resK.json();
             const kitchenItems = Array.isArray(cloudKitchen) ? cloudKitchen : (cloudKitchen?.items || null);
