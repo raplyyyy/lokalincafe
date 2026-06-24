@@ -47,10 +47,7 @@
       <div class="form-group">
         <label>Category / Section</label>
         <select id="inp-category" style="width:100%;padding:10px 12px;background:var(--bg-input);border:1px solid var(--border);border-radius:var(--radius-md);color:var(--text-primary);font-family:inherit;font-size:0.9rem;">
-          <option value="Main Food">🍛 Main Food</option>
-          <option value="Snack">🍟 Snack</option>
-          <option value="Pasta">🍝 Pasta</option>
-          <option value="Dessert">🍮 Dessert</option>
+          <!-- Options are populated dynamically by updateCategoryDropdown() -->
         </select>
       </div>
       <div class="form-group">
@@ -192,7 +189,7 @@ async function loadMenu() {
   }
 }
 
-// ── These category lists MUST stay in sync with how order.js groups items from DB ──
+// ── These category lists MUST stay in sync with DRINK_CATS in server.js ──────
 const FOOD_CATEGORIES = [
   { value: 'Main Food', label: '🍛 Main Food' },
   { value: 'Snack',     label: '🍟 Snack' },
@@ -200,6 +197,7 @@ const FOOD_CATEGORIES = [
   { value: 'Dessert',   label: '🍮 Dessert' },
   { value: 'Paket',     label: '🎁 Paket' },
 ];
+// NOTE: Values here MUST exactly match entries in server.js DRINK_CATS set (Title Case)
 const DRINK_CATEGORIES = [
   { value: 'Coffee',      label: '☕ Coffee' },
   { value: 'Non-Coffee',  label: '🥛 Non-Coffee' },

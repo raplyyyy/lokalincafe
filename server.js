@@ -84,19 +84,23 @@ app.get("/api/menu", async (req, res) => {
     if (error) throw error;
     
     // Group into { food: [], drinks: [] } for frontend
-    // Filter out all system/internal entries (SYS_STOCK_*, SYS_SALES_*, category: System)
-    // IMPORTANT: This whitelist must stay in sync with DRINK_CATEGORIES in admin.html
-    const DRINK_CATEGORY_WHITELIST = new Set([
-      'coffee', 'non-coffee', 'kopi', 'drink', 'minuman',
-      'tea', 'teh', 'juice', 'jus', 'blend',
-      'squash', 'water', 'other drink'
+    // IMPORTANT: This set MUST stay in sync with DRINK_CATEGORIES in admin.html
+    // Uses exact match on canonical Title Case values + legacy lowercase aliases.
+    // Snack intentionally kept as Food only — do NOT add it here.
+    const DRINK_CATS = new Set([
+      // Canonical (Title Case) — matches admin.html DRINK_CATEGORIES values
+      'Coffee', 'Non-Coffee', 'Tea', 'Juice', 'Squash', 'Blend', 'Water', 'Other Drink',
+      // Legacy lowercase (for old Supabase rows saved before standardization)
+      'coffee', 'non-coffee', 'kopi', 'tea', 'teh', 'juice', 'jus',
+      'squash', 'blend', 'water', 'other drink', 'drink', 'minuman',
     ]);
+
     const menu = { food: [], drinks: [] };
     for (const item of data) {
       if (item.id.startsWith('SYS_')) continue;
       if (item.category === 'System') continue;
-      const cat = (item.category || "").toLowerCase().trim();
-      if (DRINK_CATEGORY_WHITELIST.has(cat) || [...DRINK_CATEGORY_WHITELIST].some(k => cat.includes(k))) {
+      const cat = (item.category || "").trim(); // preserve case for exact match
+      if (DRINK_CATS.has(cat)) {
         menu.drinks.push(item);
       } else {
         menu.food.push(item);
@@ -108,6 +112,7 @@ app.get("/api/menu", async (req, res) => {
     res.status(500).json({ error: "Failed to load menu" });
   }
 });
+
 
 // POST /api/order → create new order
 app.post("/api/order", async (req, res) => {
