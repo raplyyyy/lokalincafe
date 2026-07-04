@@ -592,7 +592,6 @@ function attachInputListeners() {
 window.addStockItem = function () {
     const nameInput = document.getElementById('inp-name');
     const initialInput = document.getElementById('inp-initial');
-    kok
     const name = nameInput.value.trim();
     const initial = parseInt(initialInput.value) || 0;
 
@@ -697,11 +696,28 @@ window.savePastStockRecord = async function () {
     const history = await getHistory();
     history.push({ date: dateStr, items: snapshot });
 
+    function parseFullLocaleDate(dateStr) {
+        try {
+            const parts = dateStr.replace(' pukul ', ' ').replace(',', '').split(' ');
+            if (parts.length < 5) return null;
+            const day = parts[1].padStart(2, '0');
+            const monthNames = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+            let month = (monthNames.indexOf(parts[2]) + 1).toString().padStart(2, '0');
+            const year = parts[3];
+            const time = parts[4].replace('.', ':');
+            return `${year}-${month}-${day}T${time}:00`;
+        } catch (e) { return null; }
+    }
+
     history.sort((a, b) => {
-        const da = parseLocaleDate(a.date) || a.date;
-        const db = parseLocaleDate(b.date) || b.date;
-        // If parse fails, fallback to string comparison (it might be brittle but works for recent dates)
-        return db.localeCompare(da);
+        const da = parseFullLocaleDate(a.date);
+        const db = parseFullLocaleDate(b.date);
+        // Newest first: if both parsed, compare strings (YYYY-MM-DDTHH:mm:ss sorts correctly)
+        if (da && db) return db.localeCompare(da);
+        // Fallback: entries with unparseable dates go to the end
+        if (da) return -1;
+        if (db) return 1;
+        return 0;
     });
 
     await saveHistory(history);
@@ -711,9 +727,9 @@ window.savePastStockRecord = async function () {
     document.getElementById('pastStockModal').classList.remove('show');
     alert("✅ Past stock record added successfully!");
 
-    // Refresh modal
-    if (typeof loadHistoryModal === "function") {
-        loadHistoryModal();
+    // Refresh history modal if it's already open
+    if (document.getElementById('historyModal').classList.contains('show')) {
+        viewHistoryBtn.click();
     }
 };
 
