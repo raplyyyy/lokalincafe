@@ -848,7 +848,10 @@ window.processExportExcel = async function () {
 
     if (dataToExport.length === 0) return alert("Data is empty.");
 
-    const ws = XLSX.utils.json_to_sheet(dataToExport);
+    const ws = XLSX.utils.json_to_sheet(dataToExport, { origin: "A3" });
+
+    // Add a formal Report Title at the top
+    XLSX.utils.sheet_add_aoa(ws, [[title.toUpperCase()]], { origin: "A1" });
 
     // Auto-adjust column widths
     if (dataToExport.length > 0) {
@@ -863,8 +866,9 @@ window.processExportExcel = async function () {
             return { wch: Math.min(max_width + 3, 50) }; // Add padding, max 50
         });
         
-        // Add AutoFilter (dropdowns) to the header row
+        // Add AutoFilter (dropdowns) to the header row (Row 3)
         const range = XLSX.utils.decode_range(ws['!ref']);
+        range.s.r = 2; // 0-indexed, so row 3 is index 2
         ws['!autofilter'] = { ref: XLSX.utils.encode_range(range) };
     }
 
