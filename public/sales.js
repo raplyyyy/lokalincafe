@@ -657,34 +657,64 @@ window.processExportExcel = function() {
     }
 
     if (!rows.length) return alert('Data is empty.');
-    const ws = XLSX.utils.json_to_sheet(rows, { origin: "A3" });
 
-    // Add a formal Report Title at the top
-    XLSX.utils.sheet_add_aoa(ws, [[title.toUpperCase()]], { origin: "A1" });
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Sales Report');
+    const headers = Object.keys(rows[0]);
 
-    // Auto-adjust column widths
-    if (rows.length > 0) {
-        const keys = Object.keys(rows[0]);
-        ws['!cols'] = keys.map(key => {
-            let max_width = key.length;
-            for (let i = 0; i < rows.length; i++) {
-                const val = rows[i][key];
-                const valLen = val ? val.toString().length : 0;
-                if (valLen > max_width) max_width = valLen;
+    // Title Row
+    worksheet.addRow([title.toUpperCase()]);
+    worksheet.getCell('A1').font = { size: 14, bold: true, color: { argb: 'FFFFFFFF' } };
+    worksheet.getCell('A1').fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1D6F42' } };
+    worksheet.getCell('A1').alignment = { vertical: 'middle', horizontal: 'center' };
+    worksheet.mergeCells(1, 1, 1, headers.length);
+    worksheet.getRow(1).height = 30;
+
+    worksheet.addRow([]); // Empty row 2
+
+    // Header Row (Row 3)
+    const headerRow = worksheet.addRow(headers);
+    headerRow.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+    headerRow.eachCell(cell => {
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2D3748' } };
+        cell.alignment = { vertical: 'middle', horizontal: 'center' };
+        cell.border = { top: {style:'thin'}, left: {style:'thin'}, bottom: {style:'thin'}, right: {style:'thin'} };
+    });
+    headerRow.height = 25;
+
+    // Data Rows
+    rows.forEach(item => {
+        const rowValues = headers.map(h => item[h]);
+        const row = worksheet.addRow(rowValues);
+        row.eachCell(cell => {
+            cell.border = { top: {style:'thin'}, left: {style:'thin'}, bottom: {style:'thin'}, right: {style:'thin'} };
+            if (typeof cell.value === 'number') {
+                cell.alignment = { horizontal: 'right' };
             }
-            return { wch: Math.min(max_width + 3, 50) }; // Add padding, max 50
         });
-        
-        // Add AutoFilter (dropdowns) to the header row (Row 3)
-        const range = XLSX.utils.decode_range(ws['!ref']);
-        range.s.r = 2; // 0-indexed, so row 3 is index 2
-        ws['!autofilter'] = { ref: XLSX.utils.encode_range(range) };
-    }
+    });
 
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Report');
-    XLSX.writeFile(wb, `${title}.xlsx`);
-    document.getElementById('exportModal').classList.remove('show');
+    // Auto Column Widths
+    worksheet.columns.forEach(column => {
+        let maxLength = 0;
+        column.eachCell({ includeEmpty: true }, (cell, rowNum) => {
+            if (rowNum === 1) return; // skip title row formatting length
+            const columnLength = cell.value ? cell.value.toString().length : 8;
+            if (columnLength > maxLength) maxLength = columnLength;
+        });
+        column.width = Math.min(maxLength + 2, 50);
+    });
+
+    // Auto-filter & Freeze Panes
+    const endColChar = String.fromCharCode(64 + headers.length); // handles up to Z
+    worksheet.autoFilter = `A3:${endColChar}${rows.length + 3}`;
+    worksheet.views = [{ state: 'frozen', ySplit: 3 }];
+
+    // Save
+    workbook.xlsx.writeBuffer().then(buffer => {
+        saveAs(new Blob([buffer], { type: 'application/octet-stream' }), `${title}.xlsx`);
+        document.getElementById('exportModal').classList.remove('show');
+    });
 };
 
 // ── Custom Confirm Modal ──────────────────────────────────────────────────────
