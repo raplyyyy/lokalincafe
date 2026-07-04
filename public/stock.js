@@ -849,6 +849,25 @@ window.processExportExcel = async function () {
     if (dataToExport.length === 0) return alert("Data is empty.");
 
     const ws = XLSX.utils.json_to_sheet(dataToExport);
+
+    // Auto-adjust column widths
+    if (dataToExport.length > 0) {
+        const keys = Object.keys(dataToExport[0]);
+        ws['!cols'] = keys.map(key => {
+            let max_width = key.length;
+            for (let i = 0; i < dataToExport.length; i++) {
+                const val = dataToExport[i][key];
+                const valLen = val ? val.toString().length : 0;
+                if (valLen > max_width) max_width = valLen;
+            }
+            return { wch: Math.min(max_width + 3, 50) }; // Add padding, max 50
+        });
+        
+        // Add AutoFilter (dropdowns) to the header row
+        const range = XLSX.utils.decode_range(ws['!ref']);
+        ws['!autofilter'] = { ref: XLSX.utils.encode_range(range) };
+    }
+
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Stock Report");
 
