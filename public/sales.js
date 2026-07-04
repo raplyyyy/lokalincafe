@@ -658,6 +658,25 @@ window.processExportExcel = function() {
 
     if (!rows.length) return alert('Data is empty.');
     const ws = XLSX.utils.json_to_sheet(rows);
+
+    // Auto-adjust column widths
+    if (rows.length > 0) {
+        const keys = Object.keys(rows[0]);
+        ws['!cols'] = keys.map(key => {
+            let max_width = key.length;
+            for (let i = 0; i < rows.length; i++) {
+                const val = rows[i][key];
+                const valLen = val ? val.toString().length : 0;
+                if (valLen > max_width) max_width = valLen;
+            }
+            return { wch: Math.min(max_width + 3, 50) }; // Add padding, max 50
+        });
+        
+        // Add AutoFilter (dropdowns) to the header row
+        const range = XLSX.utils.decode_range(ws['!ref']);
+        ws['!autofilter'] = { ref: XLSX.utils.encode_range(range) };
+    }
+
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Report');
     XLSX.writeFile(wb, `${title}.xlsx`);
